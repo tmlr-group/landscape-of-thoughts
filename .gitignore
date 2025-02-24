@@ -1,0 +1,84 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+env/
+build/
+dist/
+*.log
+
+# pyenv
+.python-version
+
+# dotenv
+.env
+
+# virtualenv
+.venv/
+venv/
+ENV/
+
+# VSCode settings
+.vscode
+
+# IDEA files
+.idea
+
+# OSX dir files
+.DS_Store
+
+# Sublime Text settings
+*.sublime-workspace
+*.sublime-project
+
+.cache
+
+dummy.ipynb
+test.ipynb
+
+*.bkp
+
+benchmarks/data/*
+!benchmarks/data/prompts
+!benchmarks/data/prompts
+results/
+
+*.pdf
+# *.pkl
+
+dummy.py
+figures
+*/__pycache__/
+
+semantic_entropy
+togetherAi_hello.ipynb
+exp-data-scale/*
+exp-data-searching/*
+hf_models
+hfdownloader
+
+model_worker_*
+
+openai_api_*
+
+controller*
+
+figures_bkp
+
+ckpts
+__MACOSX
+training_data
+exp-data-scale_full
+exp-data
+exp-data-scale_full.zip
+images
+testing_data
+correlation_plot_data
+imgs_landscape_analysis
+tmp/step3_all_thoughts_no_cluster/
+exp-data-inference-scaling*
+exp-data-searching_full*
+BKP*
