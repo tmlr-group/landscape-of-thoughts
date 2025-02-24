@@ -17,26 +17,18 @@ def split_array(shapes, full_array):
     split_points = np.cumsum(row_counts)[:-1]
     return np.split(full_array, split_points)
 
-def loading_data_from_file(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', method="cot", total_sample=50):
+def loading_data_from_file(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', method="cot", total_sample=50, ROOT="./Landscape-Data"):
     # Load data
     ########################################
     plot_datas = {} 
     distance_matries = []
     num_all_thoughts_w_start_list = []
 
-    broken_sample_idx_list = []
     for sample_idx in tqdm(range(total_sample), ncols=total_sample):
-        if method in ["mcts", "tot"]:
-            file_path = f'./exp-data-searching/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
-        else:
-            file_path = f'./exp-data-scale_full/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
+        # file_path = f'./exp-data-scale/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
+        file_path = f'{ROOT}/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
         (distance_matrix, num_thoughts_each_chain, num_chains, num_all_thoughts, all_answers, answer_gt_short) = load_data(thoughts_file=file_path)
         
-        if dataset == "commonsenseqa":
-            if distance_matrix.shape[1] != 5: 
-                broken_sample_idx_list.append(sample_idx) # only use the 5 anchors
-                continue
-
         plot_datas[sample_idx] = {
             "num_thoughts_each_chain": num_thoughts_each_chain,
             "num_chains": num_chains,
@@ -50,7 +42,7 @@ def loading_data_from_file(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='a
     distance_matries = np.concatenate(distance_matries)
     return distance_matries, num_all_thoughts_w_start_list, plot_datas
 
-def process_data(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', method="cot", plot_type='method', total_sample=50):
+def process_data(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', method="cot", plot_type='method', total_sample=50, ROOT="./Landscape-Data", ):
     distance_matrix_shape = []
     list_distance_matrix = []
     list_num_all_thoughts_w_start_list = []
@@ -60,7 +52,7 @@ def process_data(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', meth
         # assert method == 'cot', "model should be cot"
         # assert dataset == 'aqua', "dataset should be aqua"
         for model in ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']:
-            distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, method=method, total_sample=total_sample)
+            distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, method=method, total_sample=total_sample, ROOT=ROOT)
             list_distance_matrix.append(distance_matries)
             list_plot_data.append(plot_datas)
             list_num_all_thoughts_w_start_list.append(num_all_thoughts_w_start_list)
@@ -119,7 +111,7 @@ def move_titles_to_bottom(fig, column_titles, y_position=-0.1, font_size=30):
     fig.for_each_annotation(update_annotation)
     return fig
 
-def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w_start_list, list_bins, list_n_contours,):
+def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w_start_list):
 
     all_T_with_start_coordinate_matrix = split_list(num_all_thoughts_w_start_list, splited_T_2D)
 
@@ -383,7 +375,7 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
 
     return fig
 
-def main(method, model_name, dataset_name):
+def main(method="", model_name="", dataset_name="", ROOT="./Landscape-Data",):
 
     METHODS = [method] if method else ['cot', 'l2m', 'mcts', 'tot']
     MODELS = [model_name] if model_name else ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']
@@ -395,16 +387,18 @@ def main(method, model_name, dataset_name):
                 model=model, 
                 dataset=dataset, 
                 plot_type='method',
-                total_sample=50
+                total_sample=50,
+                ROOT=ROOT
             )
             method_idx = 0
             for plot_datas, splited_T_2D, num_all_thoughts_w_start_list in zip(list_plot_data, list_all_T_2D, list_num_all_thoughts_w_start_list):
-                save_path = f"figures/landscape_appendix/FIG1_{model}-{dataset}-{METHODS[method_idx]}.png"
+                save_path = f"figures/landscape/FIG1_{model}-{dataset}-{METHODS[method_idx]}.png"
                 fig = draw(
                     dataset_name=dataset, 
                     plot_datas=plot_datas, splited_T_2D=splited_T_2D, A_matrix_2D=A_matrix_2D, num_all_thoughts_w_start_list=num_all_thoughts_w_start_list, 
                 )
-                method_idx += 1
+                if not method: # if not specific method
+                    method_idx += 1
                 os.makedirs(os.path.dirname(save_path), exist_ok=True)
                 print(f"==> save figure to:{save_path}")
                 pio.write_image(fig, save_path, scale=6, width=1500, height=350)

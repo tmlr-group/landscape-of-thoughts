@@ -1,8 +1,7 @@
 import re
-from .gsm8k import Gsm8k
-from .BBH import bbh
-from .long_bench import LongBench
 
+from .BBH import bbh
+from .gsm8k import Gsm8k
 
 MULTIPLE_CHOICE_TASKS = [
     "temporal_sequences",
@@ -36,13 +35,6 @@ FREE_FORM_TASKS = [
     "web_of_lies",
 ]
 
-LONGBENCH_TASKS = [
-    "narrativeqa", "qasper", "multifieldqa_en", "multifieldqa_zh", "hotpotqa", "2wikimqa", "musique", \
-            "dureader", "gov_report", "qmsum", "multi_news", "vcsum", "trec", "triviaqa", "samsum", "lsht", \
-            "passage_count", "passage_retrieval_en", "passage_retrieval_zh", "lcc", "repobench-p"
-]
-
-
 
 
 def get_data_class(name):
@@ -50,8 +42,6 @@ def get_data_class(name):
         return Gsm8k()
     elif name=="BBH" or name=="bbh":
         return bbh()
-    elif name in LONGBENCH_TASKS:
-        return LongBench(dataset_name=name)
     else:
         raise NotImplementedError
 
@@ -119,8 +109,6 @@ def answer_cleansing(dataset_name, pred,mode="FREE_FORM_TASKS"):
     elif dataset_name == "last_letters":
         pred = re.sub(r"\"|\'|\n|\.|\s","", pred)
         pred = [pred]
-    elif dataset_name in LONGBENCH_TASKS:
-        pred = [pred.strip()]
     else:
         raise ValueError("dataset is not properly defined ...")
 

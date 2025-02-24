@@ -33,10 +33,7 @@ We present `landscape-of-thoughts`, a visualization tool that maps LLMs' reasoni
 We use `python==3.10` and `torch==2.5.1` with `CUDA==12.6`. To set up the environment, run:
 
 ```bash
-conda create -n trace-of-thoughts python=3.10
-
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126 # from https://pytorch.org/get-started/locally/
-
+conda create -n landscape python=3.10
 pip3 install -r requirements.txt
 ```
 
@@ -125,9 +122,28 @@ pip3 install -r requirements.txt
 
 ## Downloading reference responses and processed data
 
-❗❗❗ NOTE: The following calculation requires **massive API queries**, we provide the results we calclulated for reference, see [GazeEzio/Landscape-of-Thought](https://huggingface.co/datasets/GazeEzio/Landscape-of-Thought) in huggingface.
+❗❗❗ NOTE: The following calculation requires **massive API queries**, we provide the results we calclulated for reference, see [GazeEzio/Landscape-of-Thought](https://huggingface.co/datasets/GazeEzio/Landscape-of-Thought) in huggingface, run:
+
+```bash
+sudo apt-get install git-lfs
+git lfs clone git@hf.co:datasets/GazeEzio/Landscape-Data
+```
 
 We also provide the bash commands of the following steps in [here](scripts/landscape_llama3.1-8B-Instruct.sh).
+
+The file tree of the provided data:
+
+```
+Landscape-Data/
+├── aqua
+│   ├── Tree
+│   ├── distance_matrix
+│   ├── inter_distance_matrix
+│   └── thoughts
+├── commonsenseqa
+├── mmlu
+└── strategyqa
+```
 
 ## Obtaining responses from LLM
 

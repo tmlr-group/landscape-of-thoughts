@@ -1,5 +1,4 @@
 import numpy as np
-from gensim.models import Word2Vec
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from tqdm import tqdm
@@ -54,31 +53,6 @@ def hamming_distance(text1, text2):
     if len(text1) != len(text2):
         raise ValueError("Strings must be equal length")
     return sum(c1 != c2 for c1, c2 in zip(text1, text2)) / len(text1)
-
-def word2vec_similarity(texts, vector_size=100):
-    # Train Word2Vec model
-    sentences = [text.split() for text in texts]
-    model = Word2Vec(sentences, vector_size=vector_size, min_count=1)
-    
-    def text_to_vector(text):
-        words = text.split()
-        vectors = [model.wv[word] for word in words if word in model.wv]
-        return np.mean(vectors, axis=0) if vectors else np.zeros(vector_size)
-    
-    # Convert texts to vectors
-    vectors = [text_to_vector(text) for text in texts]
-    
-    # Calculate pairwise cosine similarity
-    similarity_matrix = np.zeros((len(texts), len(texts)))
-    for i in range(len(texts)):
-        for j in range(len(texts)):
-            v1, v2 = vectors[i], vectors[j]
-            if np.linalg.norm(v1) > 0 and np.linalg.norm(v2) > 0:  # Avoid division by zero
-                similarity_matrix[i][j] = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
-            else:
-                similarity_matrix[i][j] = 0.0  # If either vector is zero, similarity is zero
-            
-    return similarity_matrix
 
 def compute_similarity(df, method):
     """Compute similarities (or distances) based on the specified method."""

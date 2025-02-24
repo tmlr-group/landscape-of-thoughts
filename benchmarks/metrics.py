@@ -1,15 +1,8 @@
-import numpy as np
 import re
 import string
-
-import jieba
-from fuzzywuzzy import fuzz
-import difflib
-
-from typing import List
 from collections import Counter
-from rouge import Rouge
 
+import numpy as np
 
 """
 implement the commonly used metrics here
@@ -127,24 +120,7 @@ def classification_score(prediction, ground_truth, **kwargs):
     else:
         score = 0.0
     return score
-    
-def rouge_score(prediction, ground_truth, **kwargs):
-    '''Calculate Rouge Score'''
 
-    rouge = Rouge()
-    try:
-        scores = rouge.get_scores([prediction], [ground_truth], avg=True)
-    except:
-        return 0.0
-    return scores["rouge-l"]["f"]
-
-def rouge_zh_score(prediction, ground_truth, **kwargs):
-    '''Calculate Rouge score for Chinese texts'''
-    
-    prediction = " ".join(list(jieba.cut(prediction, cut_all=False)))
-    ground_truth = " ".join(list(jieba.cut(ground_truth, cut_all=False))) 
-    score = rouge_score(prediction, ground_truth)
-    return score
 
 def f1_score(prediction, ground_truth, **kwargs):
     common = Counter(prediction) & Counter(ground_truth)
@@ -162,14 +138,4 @@ def qa_f1_score(prediction, ground_truth, **kwargs):
 
     prediction_tokens = normalized_prediction.split()
     ground_truth_tokens = normalized_ground_truth.split()
-    return f1_score(prediction_tokens, ground_truth_tokens)
-
-
-def qa_f1_zh_score(prediction, ground_truth, **kwargs):
-    prediction_tokens = list(jieba.cut(prediction, cut_all=False))
-    ground_truth_tokens = list(jieba.cut(ground_truth, cut_all=False))
-    prediction_tokens = [normalize_zh_answer(token) for token in prediction_tokens]
-    ground_truth_tokens = [normalize_zh_answer(token) for token in ground_truth_tokens]
-    prediction_tokens = [token for token in prediction_tokens if len(token) > 0]
-    ground_truth_tokens = [token for token in ground_truth_tokens if len(token) > 0]
     return f1_score(prediction_tokens, ground_truth_tokens)
