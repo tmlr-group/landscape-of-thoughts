@@ -1,16 +1,32 @@
-<div align="center">
+<!-- <div align="center"><img src="imgs/banner.png" width="700"/></div> -->
 
-  <!-- <a href="https://unsloth.ai"><picture>
-    <img alt="unsloth logo" src="imgs/Landscape_icon.png" height="110" style="max-width: 100%;">
-  </picture></a> -->
+<h1 align="center"> Landscape of Thoughts: Visualizing the Reasoning Process of Large Language Models </h1>
 
-### Landscape of Thoughts: Visualizing the Reasoning Process of Large Language Models
+<!-- <p align="center">
+    <a href="https://deepinception.github.io/"><img src="https://img.shields.io/badge/Project Website-deepinception" alt="Website"></a>
+    <a href="https://arxiv.org/abs/2311.03191"><img src="https://img.shields.io/badge/cs.ML-arXiv%3A2311.03191-b31b1b" alt="Paper"></a>
+    <img src="https://badges.toozhao.com/badges/01HEPEKFHAV8CP6JTE7JWYGVV3/blue.svg" alt="Count">
+    <img src="https://img.shields.io/github/stars/tmlr-group/DeepInception?color=yellow&label=Star" alt="Stars" >
+</p> -->
 
-![demo](imgs/demo.png)
-
-</div>
+<!-- <div class="is-size-5 publication-authors" align="center">
+            <span class="author-block">
+              <a href="https://github.com/XuanLi728">Xuan Li</a><sup>1*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://github.com/AndrewZhou924">Zhanke Zhou</a><sup>1*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://zfancy.github.io/">Jianing Zhu</a><sup>1*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://bhanml.github.io/">Bo Han</a><sup>1</sup>,
+            </span>
+</div> -->
 
 We present `landscape-of-thoughts`, a visualization tool that maps LLMs' reasoning paths into 2D space using t-SNE, enabling users to analyze and improve reasoning in multiple-choice tasks by representing reasoning states as feature vectors relative to possible answers.
+
+![demo](imgs/demo.png)
 
 ## Setting up environment
 
@@ -109,9 +125,11 @@ pip3 install -r requirements.txt
 
 ## Downloading reference responses and processed data
 
-❗❗❗ NOTE: The following calculation requires **massive API queries**, we provide the results we calclulated for reference, see [results]().
+❗❗❗ NOTE: The following calculation requires **massive API queries**, we provide the results we calclulated for reference, see [GazeEzio/Landscape-of-Thought](https://huggingface.co/datasets/GazeEzio/Landscape-of-Thought) in huggingface.
 
-## Obtaining LLM responses
+We also provide the bash commands of the following steps in [here](scripts/landscape_llama3.1-8B-Instruct.sh).
+
+## Obtaining responses from LLM
 
 The employed dataset can be found in [data](./data). Taking `Llama-3.1-8B-Instruct` as an example, to obtain the ploting data in `AQuA` dataset with `CoT` using TogetherAI, run:
 
@@ -127,25 +145,21 @@ Expected file tree:
 
 ```
 exp-data-scale
-├── aqua
-│   ├── distance_matrix
-│   ├── inter_distance_matrix
-│   └── thoughts
+├── aqua <== dataset_name
+│   ├── distance_matrix <== the data for ploting
+│   └── thoughts <== the LLM raw responses
 ├── commonsenseqa
 │   ├── distance_matrix
-│   ├── inter_distance_matrix
 │   └── thoughts
 ├── mmlu
 │   ├── distance_matrix
-│   ├── inter_distance_matrix
 │   └── thoughts
 └── strategyqa
     ├── distance_matrix
-    ├── inter_distance_matrix
     └── thoughts
 ```
 
-## Calculating the trace-of-thought
+## Calculating the distance matrix
 
 To plot the previous responses, we need to map the natural language to 2D landscape by calculating the respective distance matrix. To do this, run:
 
@@ -154,10 +168,6 @@ python step-2-compute-distance-matrix.py --model_name meta-llama/Meta-Llama-3.1-
 ```
 
 The results will be saved as `./exp-data-scale/aqua/distance_matrix/Meta-Llama-3.1-8B-Instruct-Turbo--cot--aqua--*.pkl`.
-
-## Runing with bash command
-
-We also provide the bash commands of the previous steps, see [bash](scripts/landscape_llama3.1-8B-Instruct.sh).
 
 ## Ploting
 
