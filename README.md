@@ -3,14 +3,7 @@
 ## Using TogetherAI API
 
 ```
-# FX's API-KEY
-export TOGETHERAI_API_KEY=dc7b6e35a7a0e0a582905d0c909ed0fb945208a40e25ca8cfee12a1855637b9c
-
-# ZK's API-KEY
-export TOGETHERAI_API_KEY=611c2c35f003a2ce973dcadac000bc2e1bd69ed50784f83f47e67e54ae83b641
-
-# Xuan's API-KEY
-export TOGETHERAI_API_KEY=651471eb039c544aeb2c1886dc0209d198fab2d8d5c7876d127a73da2faaa3239
+export TOGETHERAI_API_KEY=YOUR API KEY
 
 python main.py --model_name=together_ai/meta-llama/Llama-3-8b-chat-hf --algo_name=cot --shots=3 --dataset=gsm8k
 ```
