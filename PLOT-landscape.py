@@ -1,5 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
+import plotly.io as pio
+from fire import Fire
 from plotly.subplots import make_subplots
 from sklearn.manifold import TSNE
 from tqdm import tqdm
@@ -377,7 +379,35 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
         )
     )
 
-    # 应用配置
     fig.update_layout(template=template)
 
     return fig
+
+def main(method, model_name, dataset_name):
+
+    METHODS = [method] if method else ['cot', 'l2m', 'mcts', 'tot']
+    MODELS = [model_name] if model_name else ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']
+    DATASETS = [dataset_name] if dataset_name else ['aqua', 'mmlu', 'commonsenseqa', 'strategyqa']
+
+    for model in MODELS:
+        for dataset in DATASETS: 
+            list_all_T_2D, A_matrix_2D, list_plot_data, list_num_all_thoughts_w_start_list = process_data(
+                model=model, 
+                dataset=dataset, 
+                plot_type='method',
+                total_sample=50
+            )
+            method_idx = 0
+            for plot_datas, splited_T_2D, num_all_thoughts_w_start_list in zip(list_plot_data, list_all_T_2D, list_num_all_thoughts_w_start_list):
+                save_path = f"figures/landscape_appendix/FIG1_{model}-{dataset}-{METHODS[method_idx]}.png"
+                fig = draw(
+                    dataset_name=dataset, 
+                    plot_datas=plot_datas, splited_T_2D=splited_T_2D, A_matrix_2D=A_matrix_2D, num_all_thoughts_w_start_list=num_all_thoughts_w_start_list, 
+                )
+                method_idx += 1
+                os.makedirs(os.path.dirname(save_path), exist_ok=True)
+                print(f"==> save figure to:{save_path}")
+                pio.write_image(fig, save_path, scale=6, width=1500, height=350)
+
+if __name__ == "__main__":
+    Fire(main)
