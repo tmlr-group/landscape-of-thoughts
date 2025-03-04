@@ -16,22 +16,21 @@
 
 ---
 
-> [!TIP]
-> Hello
+<!-- > [!TIP]
+> Hello -->
+<!-- > [!CAUTION]
+> Hello -->
 
 > [!NOTE]
-> Before start analysing your own data, you may need to setup environment as described in [here].
-
-> [!CAUTION]
-> Hello
+> Before start analysing your own data, you may need to setup environment as described in [here](res/setup_model.md).
 
 ### 🔍 Analysis Pipeline
 
-| Step                 | Command                                    | Output                                     | Documents |
-| -------------------- | ------------------------------------------ | ------------------------------------------ | --------- |
-| 1. Collect Responses | `python step1-sample-reasoning-trace.py`   | `./exp-data-scale/*/thoughts/*.json`       | [link]()  |
-| 2. Compute Distances | `python step-2-compute-distance-matrix.py` | `./exp-data-scale/*/distance_matrix/*.pkl` | [link]()  |
-| 3. Generate Plots    | `python PLOT-landscape.py`                 | `./figures/*.png`                          | [link]()  |
+| Step                 | Command                                    | Output                                     | Documents                              |
+| -------------------- | ------------------------------------------ | ------------------------------------------ | -------------------------------------- |
+| 1. Collect Responses | `python step1-sample-reasoning-trace.py`   | `./exp-data-scale/*/thoughts/*.json`       | [link](./res/setup_environment.md#L43) |
+| 2. Compute Distances | `python step-2-compute-distance-matrix.py` | `./exp-data-scale/*/distance_matrix/*.pkl` | [link](./res/setup_environment.md#L71) |
+| 3. Generate Plots    | `python PLOT-landscape.py`                 | `./figures/*.png`                          | [link]()                               |
 
 ## 🚀 Quickstart Pipeline
 
@@ -54,8 +53,6 @@ python PLOT-landscape.py \
   --model_name Meta-Llama-3.1-8B-Instruct-Turbo \
   --dataset_name aqua
 ```
-
-## 📚 Data Structure
 
 ## 📜 Citation
 
