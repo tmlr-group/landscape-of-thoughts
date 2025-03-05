@@ -6,7 +6,7 @@ from plotly.subplots import make_subplots
 from sklearn.manifold import TSNE
 from tqdm import tqdm
 
-from utils.step_3_utils import *
+from utils.visual_utils import *
 
 '''
     Data utils

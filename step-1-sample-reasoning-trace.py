@@ -31,7 +31,7 @@ from fire import Fire
 from algorithms import MCTS_Task, ToT_Task
 from algorithms.utils import get_tree
 from models.opensource_API import opensource_API_models
-from prompt import *
+from utils.prompt import *
 
 dataset2prompt = {
     "mmlu": prompt_mmlu,
