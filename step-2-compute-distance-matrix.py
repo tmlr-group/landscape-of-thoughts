@@ -1,17 +1,14 @@
-import asyncio
+
 import copy
 import json
-import math
 import os
 import pickle as pkl
-import sys
 
 import numpy as np
 from fire import Fire
 from tqdm import tqdm
 
 from algorithms import *
-from benchmarks import *
 from models import *
 
 """
@@ -71,10 +68,7 @@ def get_distance_matrix(model, model_input, answers, trial_thoughts, topk=10, de
 
         # [1] compute p(state|question): X -> S_i
         #######################################
-        if asyn:
-            perplexity_states_question = np.ones(len(states_without_question))*1 if debug else asyncio.run(model.get_perplexity_async(model_input, states_without_question))
-        else:
-            perplexity_states_question = np.ones(len(states_without_question))*1 if debug else model.get_perplexity(model_input, states_without_question)
+        perplexity_states_question = np.ones(len(states_without_question))*1 if debug else model.get_perplexity(model_input, states_without_question)
         distance_matrix[start_idx:end_idx, anchors_idx_y[0]] = np.array(perplexity_states_question)
         
         # [2] compute p(answer|state): S_i -> Y_1, Y_2, ..., Y_N
@@ -82,10 +76,7 @@ def get_distance_matrix(model, model_input, answers, trial_thoughts, topk=10, de
         for state_idx, state in enumerate(states_with_question):
             target_thoughts = copy.deepcopy(answers) # there is no next thought
             target_thoughts_idx = anchors_idx_y[1:]
-            if asyn:
-                perplexity = np.ones(len(target_thoughts))*2 if debug else asyncio.run(model.get_perplexity_async(state, target_thoughts))
-            else:
-                perplexity = np.ones(len(target_thoughts))*2 if debug else model.get_perplexity(state, target_thoughts)
+            perplexity = np.ones(len(target_thoughts))*2 if debug else model.get_perplexity(state, target_thoughts)
             distance_matrix[start_idx+state_idx, target_thoughts_idx] = np.array(perplexity)
     
     # [3] get the anchors' coordinates
