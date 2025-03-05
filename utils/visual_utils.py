@@ -4,6 +4,8 @@ import pickle as pkl
 
 import numpy as np
 from scipy.interpolate import interp1d
+from sklearn.manifold import TSNE
+from tqdm import tqdm
 
 
 def adjust_color(base_color, factor):
@@ -160,3 +162,100 @@ def process_chain_points(chain_points):
         })
     
     return all_x, all_y, all_weights, scatter_data, start_points
+
+def split_array(shapes, full_array):
+    row_counts = [shape[0] for shape in shapes]
+    assert sum(row_counts) == full_array.shape[0], "The total number of rows does not match"
+    split_points = np.cumsum(row_counts)[:-1]
+    return np.split(full_array, split_points)
+
+def loading_data_from_file(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', method="cot", total_sample=50, ROOT="./Landscape-Data"):
+    # Load data
+    ########################################
+    plot_datas = {} 
+    distance_matries = []
+    num_all_thoughts_w_start_list = []
+
+    for sample_idx in tqdm(range(total_sample), ncols=total_sample):
+        # file_path = f'./exp-data-scale/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
+        file_path = f'{ROOT}/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
+        (distance_matrix, num_thoughts_each_chain, num_chains, num_all_thoughts, all_answers, answer_gt_short) = load_data(thoughts_file=file_path)
+        
+        plot_datas[sample_idx] = {
+            "num_thoughts_each_chain": num_thoughts_each_chain,
+            "num_chains": num_chains,
+            "num_all_thoughts": num_all_thoughts,
+            "all_answers": all_answers,
+            "answer_gt_short": answer_gt_short
+        }
+
+        distance_matries.append(distance_matrix)
+        num_all_thoughts_w_start_list.append(num_all_thoughts+1) # add one row from A matrix
+    distance_matries = np.concatenate(distance_matries)
+    return distance_matries, num_all_thoughts_w_start_list, plot_datas
+
+def process_data(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='aqua', method="cot", plot_type='method', total_sample=50, ROOT="./Landscape-Data", ):
+    distance_matrix_shape = []
+    list_distance_matrix = []
+    list_num_all_thoughts_w_start_list = []
+    list_plot_data = []
+
+    if plot_type == "model":
+        # assert method == 'cot', "model should be cot"
+        # assert dataset == 'aqua', "dataset should be aqua"
+        for model in ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']:
+            distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, method=method, total_sample=total_sample, ROOT=ROOT)
+            list_distance_matrix.append(distance_matries)
+            list_plot_data.append(plot_datas)
+            list_num_all_thoughts_w_start_list.append(num_all_thoughts_w_start_list)
+            distance_matrix_shape.append(distance_matries.shape)
+    
+    elif plot_type == "dataset":
+        # ! we cannot make all the sample with different num_answer to process together
+        raise NotImplementedError
+    
+    elif plot_type == "method":
+        # assert model == 'Meta-Llama-3.1-70B-Instruct-Turbo', "model should be 70B"
+        # assert dataset == 'aqua', "dataset should be AQuA"
+        for method in ['cot', 'l2m', 'mcts', 'tot']:
+            distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, method=method, total_sample=total_sample)
+            list_distance_matrix.append(distance_matries)
+            list_plot_data.append(plot_datas)
+            list_num_all_thoughts_w_start_list.append(num_all_thoughts_w_start_list)
+            distance_matrix_shape.append(distance_matries.shape)
+    else:
+        raise NotImplementedError
+
+    fig_data = np.concatenate(list_distance_matrix)
+
+    if dataset == "mmlu":
+        target_A_matrix = np.ones((4,4)) * (1/4) 
+    elif dataset == "strategyqa":
+        target_A_matrix = np.ones((2,2)) * (1/3) 
+    else:
+        target_A_matrix = np.ones((5,5)) * (1/4) 
+    target_A_matrix[np.diag_indices(target_A_matrix.shape[0])] = 0
+
+    # concatenate all T and A(0-th row) (Nx(num_thoughts + 1), C), then concat the constant A matrix (C, C)
+    tsne = TSNE(n_components=2, perplexity=10, random_state=42)
+    all_T_constant_A_distance_matrix = tsne.fit_transform(np.concatenate([fig_data, target_A_matrix]))
+
+    # split the Nx(num_thoughts + 1) back to sample-wise distance matrix
+    if dataset == "mmlu":
+        index = -4
+    elif dataset == "strategyqa":
+        index = -2
+    else:
+        index = -5
+    all_T_2D, A_matrix_2D = all_T_constant_A_distance_matrix[:index, :], all_T_constant_A_distance_matrix[index:, :]
+    list_all_T_2D = split_array(distance_matrix_shape, all_T_2D)
+
+    return list_all_T_2D, A_matrix_2D, list_plot_data, list_num_all_thoughts_w_start_list
+
+
+def move_titles_to_bottom(fig, column_titles, y_position=-0.1, font_size=30):
+    def update_annotation(a):
+        if a.text in column_titles:
+            a.update(y=y_position, font_size=font_size)
+    fig.for_each_annotation(update_annotation)
+    return fig
