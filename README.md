@@ -57,7 +57,12 @@ python PLOT-landscape.py \
 ## 📜 Citation
 
 ```bibtex
-
+@inprocessing{
+  title={Landscape of Thought: XXX},
+  author={XXX},
+  booktitle={arXiv},
+  year={2025},
+}
 ```
 
 ## 📝 License
