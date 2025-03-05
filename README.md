@@ -30,7 +30,7 @@
 | -------------------- | ------------------------------------------ | ------------------------------------------ | -------------------------------------- |
 | 1. Collect Responses | `python step1-sample-reasoning-trace.py`   | `./exp-data-scale/*/thoughts/*.json`       | [link](./res/setup_environment.md#L43) |
 | 2. Compute Distances | `python step-2-compute-distance-matrix.py` | `./exp-data-scale/*/distance_matrix/*.pkl` | [link](./res/setup_environment.md#L71) |
-| 3. Generate Plots    | `python PLOT-landscape.py`                 | `./figures/*.png`                          | [link]()                               |
+| 3. Generate Plots    | `python step-3-plot-landscape.py`          | `./figures/*.png`                          | [link]()                               |
 
 ## 🚀 Quickstart Pipeline
 
@@ -49,7 +49,7 @@ python step-2-compute-distance-matrix.py \
   --dataset_name aqua
 
 # Step 3: Visualization
-python PLOT-landscape.py \
+python step-3-plot-landscape.py \
   --model_name Meta-Llama-3.1-8B-Instruct-Turbo \
   --dataset_name aqua
 ```

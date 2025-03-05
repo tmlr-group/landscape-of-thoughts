@@ -70,15 +70,5 @@ figures_bkp
 
 ckpts
 __MACOSX
-training_data
-exp-data-scale_full
-exp-data
-exp-data-scale_full.zip
-images
-testing_data
-correlation_plot_data
-imgs_landscape_analysis
-tmp/step3_all_thoughts_no_cluster/
-exp-data-inference-scaling*
-exp-data-searching_full*
-BKP*
+
+Landscape-Data
