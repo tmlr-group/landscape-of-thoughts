@@ -21,10 +21,11 @@
 <!-- > [!CAUTION]
 > Hello -->
 
-> [!NOTE]
-> Before start analysing your own data, you may need to setup environment as described in [here](res/setup_model.md).
+## 🏔️ Setup Environment
 
-### 🔍 Analysis Pipeline
+Before start analysing your own data, you may need to setup environment ([link](<(res/setup_environment.md)>)) and model ([link](res/setup_model.md)).
+
+## 🔍 Analysis Pipeline
 
 | Step                 | Command                                    | Output                                     | Documents                              |
 | -------------------- | ------------------------------------------ | ------------------------------------------ | -------------------------------------- |
@@ -39,12 +40,12 @@
 export TOGETHERAI_API_KEY=your_key_here
 
 # Step 1: Data Collection
-python step1-sample-reasoning-trace.py \
+python step_1_sample_reasoning_trace.py \
   --model_name meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo \
   --dataset_name aqua
 
 # Step 2: Distance Calculation
-python step-2-compute-distance-matrix.py \
+python step_2_compute_distance_matrix.py \
   --model_name meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo \
   --dataset_name aqua
 
