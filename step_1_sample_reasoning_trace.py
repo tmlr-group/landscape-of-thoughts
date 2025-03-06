@@ -59,12 +59,12 @@ def main(
         model_name: str = 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
         port: int = 8000,
         dataset_name: str = 'mmlu',
-        dataset_path: str = 'data/mmlu_college_physics.json',
         method: str = 'cot',
         samples: int = 10,
         start_index: int = 0,
         end_index: int = 50
 ):
+    dataset_path = f'data/{dataset_name}.json'
     print(f"==> model_name: {model_name}\n==> dataset_name: {dataset_name}\n==> dataset_path: {dataset_path}\n==> method: {method}\n==> samples_cnt: {samples}\n==> start_index: {start_index}\n==> end_index: {end_index}\n")
 
     # 1. Load the dataset
