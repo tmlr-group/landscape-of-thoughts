@@ -72,3 +72,5 @@ ckpts
 __MACOSX
 
 Landscape-Data
+
+exp-data/*

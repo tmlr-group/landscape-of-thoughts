@@ -9,6 +9,15 @@ class BaseDataset(ABC):
     Users can extend this class to wrap their own datasets.
     """
     
+    def __init__(self, dataset_name: str = "unknown"):
+        """
+        Initialize the base dataset.
+        
+        Args:
+            dataset_name (str, optional): Name of the dataset. Defaults to "unknown".
+        """
+        self.dataset_name = dataset_name
+    
     @abstractmethod
     def __getitem__(self, idx: int) -> Dict[str, Any]:
         """
