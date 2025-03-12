@@ -1,0 +1,17 @@
+Question: What is 2+2?
+Answer: Let's think step by step. 
+
+To find the sum of 2 and 2, I need to add these two numbers together.
+2 + 2 = 4
+
+So the answer is 4.
+
+Question: What is the capital of France?
+Answer: Let's think step by step.
+
+France is a country in Western Europe. The capital of France is Paris.
+
+So the answer is Paris.
+
+Question: {query}
+Answer: Let's think step by step. 

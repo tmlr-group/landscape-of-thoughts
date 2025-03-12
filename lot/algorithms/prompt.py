@@ -22,7 +22,6 @@ class Prompt(Algorithm):
         else:
             inputs = ""
 
-        # TODO: zero-shot-cot + standard examples
         if context:
             inputs += self.question_template.format(context=context, question=question)
         else:

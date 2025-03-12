@@ -38,7 +38,7 @@ Landscape-of-Thoughts/
 ### Using Your Own Data
 
 Alternatively, you can use your own dataset for obtaining the visulization data.
-In what follows, we provide an example of how to obtain the data for `AQuA` dataset with `CoT` using TogetherAI. The employed dataset can be found in [data](./data).
+In what follows, we provide an example of how to obtain the data for `AQuA` dataset with `CoT` using TogetherAI. The employed dataset can be found in [data](../data).
 
 - Step 1. Obtain Responses from LLM
 

@@ -1,0 +1,860 @@
+[
+  {
+    "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo-p",
+    "display_name": "Meta Llama 3.1 8B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "WhereIsAI/UAE-Large-V1",
+    "display_name": "UAE-Large-V1",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.016,
+      "output": 0.016
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "google/gemma-2-27b-it",
+    "display_name": "Gemma-2 Instruct (27B)",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.8,
+      "output": 0.8
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+    "display_name": "Meta Llama 3.1 405B Instruct Turbo",
+    "context_length": 130815,
+    "description": "",
+    "pricing": {
+      "input": 3.5,
+      "output": 3.5
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
+    "display_name": "Meta Llama 3.2 90B Vision Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3-70B-Instruct-Turbo",
+    "display_name": "Meta Llama 3 70B Instruct Turbo",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "togethercomputer/m2-bert-80M-32k-retrieval",
+    "display_name": "M2-BERT-Retrieval-32k",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.008,
+      "output": 0.008
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "cartesia/sonic",
+    "display_name": "Cartesia/Sonic",
+    "context_length": 0,
+    "description": "",
+    "pricing": {
+      "input": 65,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "BAAI/bge-large-en-v1.5",
+    "display_name": "BAAI-Bge-Large-1p5",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.016,
+      "output": 0.016
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/Qwen2-VL-72B-Instruct",
+    "display_name": "Qwen2-VL (72B) Instruct",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mistral-7B-v0.1",
+    "display_name": "Mistral (7B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-schnell-Free",
+    "display_name": "FLUX.1 [schnell] Free",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1.1-pro",
+    "display_name": "FLUX1.1 [pro]",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-dev",
+    "display_name": "FLUX.1 [dev]",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-Vision-Free",
+    "display_name": "Meta Llama Vision Free",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama-llama-2-70b-hf",
+    "display_name": "LLaMA-2 (70B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.9,
+      "output": 0.9
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-R1",
+    "display_name": "DeepSeek R1",
+    "context_length": 163840,
+    "description": "",
+    "pricing": {
+      "input": 3,
+      "output": 7
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "stabilityai/stable-diffusion-xl-base-1.0",
+    "display_name": "Stable Diffusion XL 1.0",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Gryphe/MythoMax-L2-13b",
+    "display_name": "MythoMax-L2 (13B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.3,
+      "output": 0.3
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/Qwen2.5-72B-Instruct-Turbo",
+    "display_name": "Qwen2.5 72B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-dev-lora",
+    "display_name": "FLUX.1 [dev] LoRA",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+    "display_name": "Meta Llama 3.3 70B Instruct Turbo Free",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    "display_name": "Meta Llama 3 8B Instruct Lite",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.1,
+      "output": 0.1
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mistral-Small-24B-Instruct-2501",
+    "display_name": "Mistral Small (24B) Instruct 25.01",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.8,
+      "output": 0.8
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mixtral-8x22B-Instruct-v0.1",
+    "display_name": "Mixtral-8x22B Instruct v0.1",
+    "context_length": 65536,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3-8B-Instruct-Turbo",
+    "display_name": "Meta Llama 3 8B Instruct Turbo",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
+    "display_name": "Nous Hermes 2 - Mixtral 8x7B-DPO ",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.6,
+      "output": 0.6
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/LlamaGuard-2-8b",
+    "display_name": "Meta Llama Guard 2 8B",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "togethercomputer/m2-bert-80M-8k-retrieval",
+    "display_name": "M2-BERT-Retrieval-8k",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.008,
+      "output": 0.008
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo-classifier",
+    "display_name": "Meta Llama 3.1 8B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-2-70b-hf",
+    "display_name": "LLaMA-2 (70B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.9,
+      "output": 0.9
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-V3",
+    "display_name": "DeepSeek V3",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 1.25,
+      "output": 1.25
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/Qwen2-72B-Instruct",
+    "display_name": "Qwen 2 Instruct (72B)",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.9,
+      "output": 0.9
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "upstage/SOLAR-10.7B-Instruct-v1.0",
+    "display_name": "Upstage SOLAR Instruct v1 (11B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.3,
+      "output": 0.3
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "togethercomputer/MoA-1",
+    "display_name": "Together AI MoA-1",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+    "display_name": "DeepSeek R1 Distill Llama 70B",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 2,
+      "output": 2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/QwQ-32B-Preview",
+    "display_name": "Qwen QwQ-32B-Preview",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "scb10x/scb10x-llama3-typhoon-v1-5x-4f316",
+    "display_name": "Typhoon 1.5X 70B-awq",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-V3-p-dp",
+    "display_name": "DeepSeek V3",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 1.25,
+      "output": 1.25
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mistral-7B-Instruct-v0.2",
+    "display_name": "Mistral (7B) Instruct v0.2",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+    "display_name": "DeepSeek R1 Distill Llama 70B Free",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "togethercomputer/m2-bert-80M-2k-retrieval",
+    "display_name": "M2-BERT-Retrieval-2K",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.008,
+      "output": 0.008
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3-8b-chat-hf",
+    "display_name": "Meta Llama 3 8B Instruct Reference",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "google/gemma-2b-it",
+    "display_name": "Gemma Instruct (2B)",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.1,
+      "output": 0.1
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-pro",
+    "display_name": "FLUX.1 [pro]",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/QwQ-32B",
+    "display_name": "Qwen QwQ-32B",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "google/gemma-2-9b-it",
+    "display_name": "Gemma-2 Instruct (9B)",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.3,
+      "output": 0.3
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Gryphe/MythoMax-L2-13b-Lite",
+    "display_name": "Gryphe MythoMax L2 Lite (13B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.1,
+      "output": 0.1
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "scb10x/scb10x-llama3-1-typhoon2-60256",
+    "display_name": "Typhoon 2 70B Instruct",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "scb10x/scb10x-llama3-1-typhoon-18370",
+    "display_name": "Typhoon 2 8B Instruct",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+    "display_name": "Meta Llama 3.1 70B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    "display_name": "Meta Llama 3.3 70B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "display_name": "Meta Llama 3.1 8B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-redux",
+    "display_name": "FLUX.1 Redux [dev]",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "BAAI/bge-base-en-v1.5",
+    "display_name": "BAAI-Bge-Base-1.5",
+    "context_length": 512,
+    "description": "",
+    "pricing": {
+      "input": 0.008,
+      "output": 0.008
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mixtral-8x7B-v0.1",
+    "display_name": "Mixtral-8x7B v0.1",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.6,
+      "output": 0.6
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    "display_name": "DeepSeek R1 Distill Qwen 1.5B",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Meta-Llama-Guard-3-8B",
+    "display_name": "Meta Llama Guard 3 8B",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-2-13b-chat-hf",
+    "display_name": "LLaMA-2 Chat (13B)",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0.22,
+      "output": 0.22
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "scb10x/scb10x-llama3-typhoon-v1-5-8b-instruct",
+    "display_name": "Typhoon 1.5 8B Instruct",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "databricks/dbrx-instruct",
+    "display_name": "DBRX Instruct",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
+    "display_name": "Llama 3.1 Nemotron 70B Instruct HF",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-depth",
+    "display_name": "FLUX.1 Depth [dev]",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/Qwen2.5-Coder-32B-Instruct",
+    "display_name": "Qwen 2.5 Coder 32B Instruct",
+    "context_length": 16384,
+    "description": "",
+    "pricing": {
+      "input": 0.8,
+      "output": 0.8
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "microsoft/WizardLM-2-8x22B",
+    "display_name": "WizardLM-2 (8x22B)",
+    "context_length": 65536,
+    "description": "",
+    "pricing": {
+      "input": 1.2,
+      "output": 1.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mistral-7B-Instruct-v0.3",
+    "display_name": "Mistral (7B) Instruct v0.3",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Qwen/Qwen2.5-7B-Instruct-Turbo",
+    "display_name": "Qwen2.5 7B Instruct Turbo",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.3,
+      "output": 0.3
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-Guard-3-11B-Vision-Turbo",
+    "display_name": "Meta Llama Guard 3 11B Vision Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3.2-3B-Instruct-Turbo",
+    "display_name": "Meta Llama 3.2 3B Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.060000000000000005,
+      "output": 0.060000000000000005
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-canny",
+    "display_name": "FLUX.1 Canny [dev]",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
+    "display_name": "Meta Llama 3.2 11B Vision Instruct Turbo",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 0.18000000000000002,
+      "output": 0.18000000000000002
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "Salesforce/Llama-Rank-V1",
+    "display_name": "Salesforce Llama Rank V1 (8B)",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.1,
+      "output": 0.1
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "meta-llama/Llama-3-70b-chat-hf",
+    "display_name": "Meta Llama 3 70B Instruct Reference",
+    "context_length": 8192,
+    "description": "",
+    "pricing": {
+      "input": 0.88,
+      "output": 0.88
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "display_name": "Mixtral-8x7B Instruct v0.1",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.6,
+      "output": 0.6
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "togethercomputer/MoA-1-Turbo",
+    "display_name": "Together AI MoA-1-Turbo",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "black-forest-labs/FLUX.1-schnell",
+    "display_name": "FLUX.1 Schnell",
+    "context_length": 4096,
+    "description": "",
+    "pricing": {
+      "input": 0,
+      "output": 0
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+    "display_name": "DeepSeek R1 Distill Qwen 14B",
+    "context_length": 131072,
+    "description": "",
+    "pricing": {
+      "input": 1.6,
+      "output": 1.6
+    },
+    "capabilities": []
+  },
+  {
+    "model_name": "mistralai/Mistral-7B-Instruct-v0.1",
+    "display_name": "Mistral (7B) Instruct",
+    "context_length": 32768,
+    "description": "",
+    "pricing": {
+      "input": 0.2,
+      "output": 0.2
+    },
+    "capabilities": []
+  }
+]

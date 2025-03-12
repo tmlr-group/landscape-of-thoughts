@@ -1,5 +1,3 @@
-
-import asyncio
 import json
 import math
 import os
@@ -8,19 +6,22 @@ import warnings
 from typing import Optional, Union
 
 import numpy as np
-from openai import AsyncOpenAI, OpenAI
-from together import AsyncTogether, Together
+from openai import OpenAI
+from together import Together
 
 from .base import GenerateOutput, LanguageModel
-from .utils import get_api_key
+from .utils import get_api_key, get_together_models
 
-with open("models/data/togetherAI_model_infos.json", 'r') as f:
-    model_infos = json.load(f)
+# Load model information from cache or fetch it if needed
+model_infos = get_together_models()
 together_model_list = [item["model_name"] for item in model_infos]
 
 class opensource_API_models(LanguageModel):
     """
-    NOTE: adding "together_ai/" in front of the model name in https://docs.together.ai/docs/inference-models before calling
+    A class for interacting with open source models via APIs like Together AI or local VLLM server.
+    
+    NOTE: For Together AI models, the model name should match those listed in 
+    https://docs.together.ai/docs/inference-models
     """
     def __init__(self, 
         model:str, max_tokens:int=2048, temperature=0.0, additional_prompt=None, port=8000,
@@ -29,11 +30,18 @@ class opensource_API_models(LanguageModel):
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self.api_key = get_api_key() 
         self.additional_prompt = additional_prompt
-        self.client = Together(api_key=self.api_key) if self.model in together_model_list else OpenAI(base_url=f"http://localhost:{port}/v1",api_key="token-abc123",)
+        
+        # Determine which API to use based on the model name
+        if self.model in together_model_list:
+            self.api_key = get_api_key("together")
+            self.client = Together(api_key=self.api_key)
+        else:
+            # For local VLLM server
+            self.api_key = "token-abc123"  # Dummy token for local server
+            self.client = OpenAI(base_url=f"http://localhost:{port}/v1", api_key=self.api_key)
 
-        # for async call, as TogetherAi set 600 req/min
+        # for rate limiting
         self.RATE_LIMIT = 40  # requests per minute; rate=40 cause 2min for Llama-3.1-70B-Instruct-Turbo
         self.INTERVAL = 60 / self.RATE_LIMIT  # interval in seconds between requests
         
@@ -51,9 +59,6 @@ class opensource_API_models(LanguageModel):
     Check the result for accuracy.
 
     Please follow this format for all responses. Each thought or step should be clearly articulated in its own sentence.'''
-
-    def chat_format_prompt(self, prompt):
-        return 
         
     def generate(self,
                  prompt: Optional[Union[str, list[str]]],
@@ -133,7 +138,7 @@ class opensource_API_models(LanguageModel):
                     warnings.warn(f"An Error Occured: {e}, sleeping for {i} seconds")
                     time.sleep(i)
             if success == 0:
-                raise RuntimeError(f"TogetherAImodel failed to generate output, even after {retry} tries")
+                raise RuntimeError(f"API request failed to generate output, even after {retry} tries")
             
         if logprobs == True:
             output = GenerateOutput(
@@ -230,78 +235,6 @@ class opensource_API_models(LanguageModel):
             contents_perplexity.append(perplexity)
         return contents_perplexity
     
-    async def rate_limited_request(self, semaphore, client, prefix, content):
-        async with semaphore:
-            # Wait for the appropriate interval before making the request
-            await asyncio.sleep(self.INTERVAL)
-            return await client.completions.create(
-                model=self.model,
-                prompt=prefix + content,
-                max_tokens=1,
-                logprobs=1,
-                echo=True
-            )
-
-    async def get_perplexity_async(self,
-                                prefix: str, 
-                                contents: list[str], 
-                                **kwargs) -> list[np.ndarray]:
-        contents_perplexity = []
-
-        if isinstance(self.client, Together):
-            # we need to define a special client for async call
-            async_client = AsyncTogether(api_key=self.api_key)
-            # compute the logprob of generating the content (given the prefix) in the async style
-            semaphore = asyncio.Semaphore(self.RATE_LIMIT)  # Create a semaphore with the rate limit
-            # Create tasks for the rate-limited requests
-            tasks = [
-                self.rate_limited_request(semaphore, async_client, prefix, content)
-                for content in contents
-            ]
-            res_echos = await asyncio.gather(*tasks)
-
-            for res_echo in res_echos:
-                cumulative_text = ""
-                tokens = res_echo.prompt[0].logprobs.tokens
-                tokens_logprobs = []
-                for i in range(len(tokens)):
-                    token = tokens[i]
-                    cumulative_text += token
-                    if len(cumulative_text) > len(prefix):
-                        logprobs = res_echo.prompt[0].logprobs.token_logprobs[i]
-                        tokens_logprobs.append(logprobs)
-                # calculate the perplexity
-                avg_logprobs = np.mean(tokens_logprobs)
-                perplexity = math.exp(-avg_logprobs)
-                contents_perplexity.append(perplexity)
-        elif isinstance(self.client, AsyncOpenAI):
-            async_client = AsyncOpenAI(api_key=self.api_key)
-            # compute the logprob of generating the content (given the prefix) in the async style
-            semaphore = asyncio.Semaphore(self.RATE_LIMIT)  # Create a semaphore with the rate limit
-            # Create tasks for the rate-limited requests
-            tasks = [
-                self.rate_limited_request(semaphore, async_client, prefix, content)
-                for content in contents
-            ]
-            res_echos = await asyncio.gather(*tasks)
-
-            for res_echo in res_echos:
-                cumulative_text = ""
-                tokens = res_echo.choices[0].logprobs.tokens
-                tokens_logprobs = []
-                for i in range(len(tokens)):
-                    token = tokens[i]
-                    cumulative_text += token
-                    if len(cumulative_text) > len(prefix):
-                        logprobs = res_echo.choices[0].logprobs.token_logprobs[i]
-                        tokens_logprobs.append(logprobs)
-                # calculate the perplexity
-                avg_logprobs = np.mean(tokens_logprobs)
-                perplexity = math.exp(-avg_logprobs)
-                contents_perplexity.append(perplexity)
-        return contents_perplexity
-
-
     def get_next_token_logits(self, 
                               prompt: str | list[str], 
                               candidates: list[str] | list[list[str]], 
@@ -335,7 +268,7 @@ class opensource_API_models(LanguageModel):
 # the following is used to test this script
 if __name__ == '__main__':
     os.environ["TOGETHERAI_API_KEY"] = ""
-    model = opensource_API_models(model="meta-llama/Meta-Llama-3-8B", max_tokens=100)
+    model = opensource_API_models(model="meta-llama/Meta-Llama-3-8B-Instruct-Lite", max_tokens=100)
     print(model.generate(['Hello, how are you?', 'How to go to Shanghai from Beijing?'], temperature= 0.7, top_p=0.7, top_k=50))
     print(model.get_loglikelihood("How can I goto Shanghai from Beijing?", [" By bicycle.", " By bus.", " By train.", " By air.", " By rocket.", " By spaceship."]))
     print(model.get_next_token_logits(["The capital of UK is", "The capital of France is", "The capital of Russia is"], ["Paris", "London", "Moscow"]))

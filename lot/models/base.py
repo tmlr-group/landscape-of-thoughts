@@ -1,19 +1,23 @@
-import os
-import pickle
-import sys
 import numpy as np
-import torch
-from tqdm import tqdm
 from transformers import StoppingCriteriaList
 from abc import ABC, abstractmethod
-from datetime import datetime
-from typing import (Generic, NamedTuple, Optional, Protocol, Tuple, TypeVar,
-                    Union, runtime_checkable)
+from typing import (NamedTuple, Optional, Union, List, Dict, Any)
 
 class GenerateOutput(NamedTuple):
     text: list[str]
     log_prob: Optional[list[np.ndarray]] = None
     str_each_token: Optional[list[list[str]]] = None
+
+class BaseModel(ABC):
+    @abstractmethod
+    def generate(self, prompt: str, **kwargs) -> GenerateOutput:
+        """Generate text from a prompt."""
+        pass
+
+    @abstractmethod
+    def get_likelihood(self, prompt: str, completion: str, **kwargs) -> float:
+        """Get the likelihood of the completion given the prompt."""
+        pass
 
 class LanguageModel(ABC):
     @abstractmethod

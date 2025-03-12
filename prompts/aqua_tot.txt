@@ -1,0 +1,49 @@
+Question: A car is being driven, in a straight line and at a uniform speed, towards the base of a vertical tower. The top of the tower is observed from the car and, in the process, it takes 10 minutes for the angle of elevation to change from 45° to 60°. After how much more time will this car reach the base of the tower? Answer Choices: (A) 5 (√3 + 1)  (B) 6 (√3 + √2)  (C) 7 (√3 – 1)  (D) 8 (√3 – 2)  (E) None of these. Answer:
+
+Let's break down this problem step by step:
+
+Step 1: Let's define the variables.
+- h = height of the tower
+- v = speed of the car
+- d₁ = distance from the car to the tower when the angle of elevation is 45°
+- d₂ = distance from the car to the tower when the angle of elevation is 60°
+
+Step 2: Let's use trigonometry to relate the angles to the distances.
+When the angle of elevation is 45°:
+tan(45°) = h/d₁
+1 = h/d₁
+h = d₁
+
+When the angle of elevation is 60°:
+tan(60°) = h/d₂
+√3 = h/d₂
+h = d₂ × √3
+
+Step 3: Let's relate the distances to the time.
+The car travels at a uniform speed, so:
+d₁ - d₂ = v × 10 minutes
+
+Step 4: Let's find the time it will take to reach the tower from the position where the angle of elevation is 60°.
+Time = d₂ / v
+
+Step 5: Let's substitute the values.
+From h = d₁, we get d₁ = h.
+From h = d₂ × √3, we get d₂ = h/√3.
+
+So, d₁ - d₂ = h - h/√3 = h(1 - 1/√3) = h(√3 - 1)/√3 = v × 10 minutes.
+
+Step 6: Let's solve for h.
+h = v × 10 minutes × √3/(√3 - 1)
+
+Step 7: Let's calculate the time.
+Time = d₂ / v = (h/√3) / v = h/(v × √3)
+
+Substituting the value of h:
+Time = (v × 10 minutes × √3/(√3 - 1))/(v × √3) = 10 minutes × √3/(√3 - 1) × 1/√3 = 10 minutes × 1/(√3 - 1) = 10 minutes × (√3 + 1)/2 = 5 minutes × (√3 + 1)
+
+So, the car will reach the base of the tower in 5(√3 + 1) minutes from the position where the angle of elevation is 60°.
+
+The answer is (A) 5(√3 + 1).
+
+Question: {query}
+Answer: Let's break down this problem step by step: 
