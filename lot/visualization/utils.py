@@ -89,6 +89,7 @@ def split_list(lengths, full_list):
     return split_lists
 
 def load_data(thoughts_file: str = "None"):
+    print(thoughts_file)
     # load thought file and parse
     #######################################
     assert os.path.exists(thoughts_file) 
@@ -200,9 +201,8 @@ def loading_data_from_file(model='Meta-Llama-3.1-70B-Instruct-Turbo', dataset='a
 def process_data(
         model='Meta-Llama-3.1-70B-Instruct-Turbo', 
         dataset='aqua', 
-        method="cot", 
+        methods=["cot"], 
         plot_type='method', 
-        total_sample=50, 
         ROOT="./Landscape-Data", 
     ):
     distance_matrix_shape = []
@@ -214,7 +214,7 @@ def process_data(
         # assert method == 'cot', "model should be cot"
         # assert dataset == 'aqua', "dataset should be aqua"
         for model in ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']:
-            distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, method=method, ROOT=ROOT)
+            distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, methods=methods, ROOT=ROOT)
             list_distance_matrix.append(distance_matries)
             list_plot_data.append(plot_datas)
             list_num_all_thoughts_w_start_list.append(num_all_thoughts_w_start_list)
@@ -227,7 +227,7 @@ def process_data(
     elif plot_type == "method":
         # assert model == 'Meta-Llama-3.1-70B-Instruct-Turbo', "model should be 70B"
         # assert dataset == 'aqua', "dataset should be AQuA"
-        for method in ['cot', 'l2m', 'mcts', 'tot']:
+        for method in methods:
             distance_matries, num_all_thoughts_w_start_list, plot_datas = loading_data_from_file(model=model, dataset=dataset, method=method, ROOT=ROOT)
             list_distance_matrix.append(distance_matries)
             list_plot_data.append(plot_datas)

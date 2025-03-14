@@ -183,7 +183,7 @@ def sample(
     return features, metrics
 
 def main(
-    model_name: str = 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+    model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct-Lite',
     port: int = 8000,
     dataset_name: str = 'aqua',
     data_path: str = 'data/aqua.jsonl',

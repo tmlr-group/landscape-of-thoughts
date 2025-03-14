@@ -1,17 +1,38 @@
+"""
+Landscape visualization utilities for LOT.
+"""
+
 import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
-from fire import Fire
-import os 
 from plotly.subplots import make_subplots
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import os
+from typing import Dict, List, Tuple, Any, Optional
+from tqdm import tqdm
 
-from lot.visualization.utils import *
+from .utils import process_chain_points, split_list
 
 
-def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w_start_list):
-
+def draw_landscape(
+    dataset_name: str, 
+    plot_datas: Dict[int, Dict[str, Any]], 
+    splited_T_2D: List[np.ndarray], 
+    A_matrix_2D: np.ndarray, 
+    num_all_thoughts_w_start_list: List[int]
+) -> go.Figure:
+    """
+    Draw a landscape visualization of reasoning traces.
+    
+    Args:
+        dataset_name (str): Name of the dataset.
+        plot_datas (Dict[int, Dict[str, Any]]): Data for plotting.
+        splited_T_2D (List[np.ndarray]): Split T matrix in 2D.
+        A_matrix_2D (np.ndarray): A matrix in 2D.
+        num_all_thoughts_w_start_list (List[int]): List of number of thoughts with start.
+        
+    Returns:
+        go.Figure: Plotly figure object.
+    """
     all_T_with_start_coordinate_matrix = split_list(num_all_thoughts_w_start_list, splited_T_2D)
 
     column_titles = [r'0-20% states', r'20-40% states', r'40-60% states', r'60-80% states', r'80-100% states']
@@ -183,7 +204,6 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
                 row=2, col=i+1
             )
 
-
     # Add anchors to both plots
     if dataset_name == "mmlu":
         labels_anchors = ['A', 'B', 'C', 'D']
@@ -239,7 +259,7 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
                 row=2, col=col_idx+1
             )
 
-    # move the subplot title to bottom
+    # Move the subplot title to bottom
     fig = move_titles_to_bottom(fig, column_titles=column_titles, y_position=-0.12)
 
     # Update both subplots to remove axes and maintain same range
@@ -323,33 +343,229 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
 
     return fig
 
-def main(method="cot", model_name="Meta-Llama-3-8B-Instruct-Lite", dataset_name="aqua", ROOT="./Landscape-Data",):
 
-    METHODS = [method] # if method else ['cot', 'l2m', 'mcts', 'tot']
-    MODELS = [model_name] # if model_name else ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']
-    DATASETS = [dataset_name] # if dataset_name else ['aqua', 'mmlu', 'commonsenseqa', 'strategyqa']
+def move_titles_to_bottom(fig, column_titles, y_position=-0.12):
+    """
+    Move column titles to the bottom of the figure.
+    
+    Args:
+        fig (go.Figure): Plotly figure object.
+        column_titles (List[str]): List of column titles.
+        y_position (float): Y position for the titles.
+        
+    Returns:
+        go.Figure: Updated figure.
+    """
+    for i, title in enumerate(column_titles):
+        fig.add_annotation(
+            x=fig.layout.annotations[i].x,
+            y=y_position,
+            text=title,
+            showarrow=False,
+            xref="paper",
+            yref="paper",
+            font=dict(size=14)
+        )
+    
+    # Remove the original titles
+    fig.update_layout(annotations=fig.layout.annotations[len(column_titles):])
+    
+    return fig
 
-    for model in MODELS:
-        for dataset in DATASETS: 
-            list_all_T_2D, A_matrix_2D, list_plot_data, list_num_all_thoughts_w_start_list = process_data(
-                model=model, 
-                dataset=dataset, 
-                plot_type='method',
-                methods=METHODS,
-                ROOT=ROOT
-            )
-            method_idx = 0
-            for plot_datas, splited_T_2D, num_all_thoughts_w_start_list in zip(list_plot_data, list_all_T_2D, list_num_all_thoughts_w_start_list):
-                save_path = f"figures/landscape/FIG1_{model}-{dataset}-{METHODS[method_idx]}.png"
-                fig = draw(
-                    dataset_name=dataset, 
-                    plot_datas=plot_datas, splited_T_2D=splited_T_2D, A_matrix_2D=A_matrix_2D, num_all_thoughts_w_start_list=num_all_thoughts_w_start_list, 
-                )
-                if not method: # if not specific method
-                    method_idx += 1
-                os.makedirs(os.path.dirname(save_path), exist_ok=True)
-                print(f"==> save figure to:{save_path}")
-                pio.write_image(fig, save_path, scale=6, width=1500, height=350)
 
-if __name__ == "__main__":
-    Fire(main)
+def process_landscape_data(
+    model: str,
+    dataset: str,
+    methods: List[str] = ["cot"],
+    plot_type: str = 'method',
+    ROOT: str = "./exp-data"
+) -> Tuple[List[np.ndarray], np.ndarray, List[Dict[int, Dict[str, Any]]], List[List[int]]]:
+    """
+    Process data for landscape visualization.
+    
+    Args:
+        model (str): Model name.
+        dataset (str): Dataset name.
+        methods (List[str]): List of methods to process.
+        plot_type (str): Type of plot ('method' or 'model').
+        ROOT (str): Root directory for data.
+        
+    Returns:
+        Tuple containing:
+            - list_all_T_2D: List of T matrices in 2D.
+            - A_matrix_2D: A matrix in 2D.
+            - list_plot_data: List of plot data.
+            - list_num_all_thoughts_w_start_list: List of number of thoughts with start.
+    """
+    from sklearn.manifold import TSNE
+    
+    distance_matrix_shape = []
+    list_distance_matrix = []
+    list_num_all_thoughts_w_start_list = []
+    list_plot_data = []
+
+    if plot_type == "model":
+        for model_name in ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']:
+            distance_matries, num_all_thoughts_w_start_list, plot_datas = load_landscape_data(model=model_name, dataset=dataset, method=methods[0], ROOT=ROOT)
+            list_distance_matrix.append(distance_matries)
+            list_plot_data.append(plot_datas)
+            list_num_all_thoughts_w_start_list.append(num_all_thoughts_w_start_list)
+            distance_matrix_shape.append(distance_matries.shape)
+    
+    elif plot_type == "dataset":
+        # We cannot make all the samples with different num_answer to process together
+        raise NotImplementedError
+    
+    elif plot_type == "method":
+        for method in methods:
+            distance_matries, num_all_thoughts_w_start_list, plot_datas = load_landscape_data(model=model, dataset=dataset, method=method, ROOT=ROOT)
+            list_distance_matrix.append(distance_matries)
+            list_plot_data.append(plot_datas)
+            list_num_all_thoughts_w_start_list.append(num_all_thoughts_w_start_list)
+            distance_matrix_shape.append(distance_matries.shape)
+    else:
+        raise NotImplementedError
+
+    fig_data = np.concatenate(list_distance_matrix)
+
+    if dataset == "mmlu":
+        target_A_matrix = np.ones((4,4)) * (1/4) 
+    elif dataset == "strategyqa":
+        target_A_matrix = np.ones((2,2)) * (1/3) 
+    else:
+        target_A_matrix = np.ones((5,5)) * (1/4) 
+    target_A_matrix[np.diag_indices(target_A_matrix.shape[0])] = 0
+
+    # Concatenate all T and A(0-th row) (Nx(num_thoughts + 1), C), then concat the constant A matrix (C, C)
+    tsne = TSNE(n_components=2, perplexity=10, random_state=42)
+    all_T_constant_A_distance_matrix = tsne.fit_transform(np.concatenate([fig_data, target_A_matrix]))
+
+    # Split the Nx(num_thoughts + 1) back to sample-wise distance matrix
+    if dataset == "mmlu":
+        index = -4
+    elif dataset == "strategyqa":
+        index = -2
+    else:
+        index = -5
+    all_T_2D, A_matrix_2D = all_T_constant_A_distance_matrix[:index, :], all_T_constant_A_distance_matrix[index:, :]
+    list_all_T_2D = split_array(distance_matrix_shape, all_T_2D)
+
+    return list_all_T_2D, A_matrix_2D, list_plot_data, list_num_all_thoughts_w_start_list
+
+
+def load_landscape_data(
+    model: str,
+    dataset: str,
+    method: str = "cot",
+    ROOT: str = "./exp-data"
+) -> Tuple[np.ndarray, List[int], Dict[int, Dict[str, Any]]]:
+    """
+    Load data for landscape visualization.
+    
+    Args:
+        model (str): Model name.
+        dataset (str): Dataset name.
+        method (str): Method name.
+        ROOT (str): Root directory for data.
+        
+    Returns:
+        Tuple containing:
+            - distance_matrices: Concatenated distance matrices.
+            - num_all_thoughts_w_start_list: List of number of thoughts with start.
+            - plot_datas: Dictionary of plot data.
+    """
+    import json
+    import pickle as pkl
+    
+    # Load data
+    plot_datas = {} 
+    distance_matrices = []
+    num_all_thoughts_w_start_list = []
+    
+    # Get the list of files in the distance_matrix directory
+    distance_matrix_dir = f'{ROOT}/{dataset}/distance_matrix/'
+    if not os.path.exists(distance_matrix_dir):
+        raise FileNotFoundError(f"Directory not found: {distance_matrix_dir}")
+    
+    # Filter files for the specific model and method
+    files = [f for f in os.listdir(distance_matrix_dir) if f.startswith(f"{model}--{method}--{dataset}--") and f.endswith(".pkl")]
+    
+    # Sort files by index
+    files.sort(key=lambda x: int(x.split("--")[-1].split(".")[0]))
+    
+    for file_name in tqdm(files, desc=f"Loading data for {model} {method} {dataset}"):
+        sample_idx = int(file_name.split("--")[-1].split(".")[0])
+        
+        # Load thoughts file
+        thoughts_file = f'{ROOT}/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
+        if not os.path.exists(thoughts_file):
+            print(f"Thoughts file not found: {thoughts_file}")
+            continue
+        
+        # Load distance matrix
+        distance_matrix_file = f'{ROOT}/{dataset}/distance_matrix/{file_name}'
+        if not os.path.exists(distance_matrix_file):
+            print(f"Distance matrix file not found: {distance_matrix_file}")
+            continue
+        
+        # Load the trial data from the JSON file
+        with open(thoughts_file, 'r', encoding='utf-8') as f:
+            trial_data = json.load(f)
+        
+        # Extract the required fields from the trial data
+        trial_thoughts = trial_data["trial_thoughts"]
+        all_answers = [answer for _, answer, _ in trial_thoughts]
+        answer_gt_short = trial_data["answer_gt_short"]
+        
+        # Calculate num_thoughts_each_chain
+        num_thoughts_each_chain = [len(thoughts) for thoughts, _, _ in trial_thoughts]
+        num_chains = len(trial_thoughts)
+        num_all_thoughts = sum(num_thoughts_each_chain)
+        
+        # Load distance matrix
+        with open(distance_matrix_file, 'rb') as f:
+            distance_matrix = pkl.load(f)
+        
+        # Normalize the distance matrix
+        distance_matrix = distance_matrix[:num_all_thoughts+1, 1:]  # get T matrix and the first row of the A matrix
+        distance_matrix = distance_matrix / np.linalg.norm(distance_matrix, axis=1, ord=1, keepdims=True)  # normalize
+        
+        # Store data
+        plot_datas[sample_idx] = {
+            "num_thoughts_each_chain": num_thoughts_each_chain,
+            "num_chains": num_chains,
+            "num_all_thoughts": num_all_thoughts,
+            "all_answers": all_answers,
+            "answer_gt_short": answer_gt_short
+        }
+        
+        distance_matrices.append(distance_matrix)
+        num_all_thoughts_w_start_list.append(num_all_thoughts+1)  # add one row from A matrix
+    
+    if not distance_matrices:
+        raise ValueError(f"No data found for {model} {method} {dataset}")
+    
+    # Concatenate all distance matrices
+    distance_matrices = np.concatenate(distance_matrices)
+    
+    return distance_matrices, num_all_thoughts_w_start_list, plot_datas
+
+
+def split_array(shapes, array):
+    """
+    Split an array according to the given shapes.
+    
+    Args:
+        shapes (List[Tuple[int, int]]): List of shapes.
+        array (np.ndarray): Array to split.
+        
+    Returns:
+        List[np.ndarray]: List of split arrays.
+    """
+    result = []
+    start_idx = 0
+    for shape in shapes:
+        end_idx = start_idx + shape[0]
+        result.append(array[start_idx:end_idx])
+        start_idx = end_idx
+    return result 

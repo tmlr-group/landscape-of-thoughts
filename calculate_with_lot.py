@@ -64,9 +64,13 @@ def calculate(
             print(f"==> Thoughts file not found: {thoughts_file}")
             continue
         
-        trial_data = json.load(open(thoughts_file, 'r'))
-        model_input = trial_data["query"]
-        answers = trial_data.get("answers", ["A", "B", "C", "D", "E"])  # Default to common multiple choice options if not provided
+        # Load the trial data from the JSON file
+        with open(thoughts_file, 'r', encoding='utf-8') as f:
+            trial_data = json.load(f)
+        
+        # Extract the required fields from the trial data
+        model_input = trial_data["model_input"]
+        answers = trial_data["answers"]
         trial_thoughts = trial_data["trial_thoughts"]
         
         # Compute distance matrix - include method in the filename
@@ -101,7 +105,7 @@ def calculate(
     return distance_matrices
 
 def main(
-    model_name: str = 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+    model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct-Lite',
     port: int = 8000,
     dataset_name: str = 'aqua',
     data_path: str = 'data/aqua.jsonl',
@@ -112,7 +116,8 @@ def main(
     default_distance: int = 10,
     debug: bool = False,
     asyn: bool = False,
-    max_tokens: int = 1000
+    max_tokens: int = 1000,
+    save_root: str = "exp-data"
 ):
     """
     Main function to calculate distance matrices for reasoning traces.
@@ -130,7 +135,16 @@ def main(
         debug (bool): Whether to run in debug mode.
         asyn (bool): Whether to run asynchronously.
         max_tokens (int): Maximum number of tokens for model responses.
+        save_root (str): Root directory to save results.
     """
+    print(f"==> model_name: {model_name}")
+    print(f"==> dataset_name: {dataset_name}")
+    print(f"==> data_path: {data_path}")
+    print(f"==> method: {method}")
+    print(f"==> start_index: {start_index}")
+    print(f"==> end_index: {end_index}")
+    print(f"==> save_root: {save_root}")
+    
     # Load dataset
     dataset = load_dataset(dataset_name, data_path)
     
@@ -138,7 +152,6 @@ def main(
     model = opensource_API_models(model=model_name, max_tokens=max_tokens, port=port)
     
     # Calculate distance matrices
-    save_root = "exp-data"
     distance_matrices = calculate(
         dataset=dataset,
         model=model,
@@ -157,4 +170,4 @@ def main(
     return distance_matrices
 
 if __name__ == "__main__":
-    Fire(main) 
+    Fire(main)
