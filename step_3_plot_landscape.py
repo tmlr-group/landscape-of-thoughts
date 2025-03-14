@@ -4,7 +4,7 @@ import plotly.io as pio
 from fire import Fire
 from plotly.subplots import make_subplots
 
-from utils.visual_utils import *
+from lot.visualization.visual_utils import *
 
 
 def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w_start_list):
