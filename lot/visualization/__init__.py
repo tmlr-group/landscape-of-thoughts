@@ -1,3 +1,2 @@
-from .visualize import visualize
-
+from .utils import *
 __all__ = ['visualize']

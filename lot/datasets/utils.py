@@ -132,7 +132,10 @@ def parse_thoughts(response: str) -> List[str]:
 def save_results(
     results: Dict[str, Any],
     save_path: str,
-    create_dir: bool = True
+    create_dir: bool = True,
+    dataset_name: str = None,
+    model_name: str = None,
+    method: str = None
 ) -> None:
     """
     Save results to file.
@@ -141,9 +144,44 @@ def save_results(
         results (Dict[str, Any]): Results data.
         save_path (str): Save path.
         create_dir (bool): Whether to create directory.
+        dataset_name (str, optional): Name of the dataset.
+        model_name (str, optional): Name of the model.
+        method (str, optional): Method used for reasoning.
     """
     if create_dir:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
     
+    # Extract information from the results
+    query = results.get("query", "")
+    answer_gt = results.get("answer", "")
+    trial_thoughts = results.get("trial_thoughts", [])
+    
+    # Format the data according to the desired structure
+    formatted_results = {
+        "dataset": dataset_name,
+        "model": model_name,
+        "method": method,
+        "model_input": query,
+        "answers": [],  # Will be populated based on the dataset
+        "answer_gt_full": f"Answer is: {answer_gt}",
+        "answer_gt_short": answer_gt,
+        "answer_gt_expl": results.get("explanation", ""),
+        "trial_thoughts": trial_thoughts
+    }
+    
+    # Generate answer options if not provided
+    if "answers" not in results:
+        # Default format for multiple choice questions
+        if answer_gt in ["A", "B", "C", "D", "E"]:
+            formatted_results["answers"] = [
+                f"Answer is: A",
+                f"Answer is: B",
+                f"Answer is: C",
+                f"Answer is: D",
+                f"Answer is: E"
+            ]
+    else:
+        formatted_results["answers"] = results["answers"]
+    
     with open(save_path, 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=2) 
+        json.dump(formatted_results, f, ensure_ascii=False, indent=2) 

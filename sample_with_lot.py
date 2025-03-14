@@ -48,10 +48,24 @@ def sample(
     features = {}
     metrics = {"accuracy": []}
     
+    # Get method name
+    method = getattr(algorithm, 'method', type(algorithm).__name__)
+    
+    # Get model name
+    model_name = model.model
+    model_name_short = model_name.split("/")[-1] if "/" in model_name else model_name
+    
     # Generate thoughts
     print(f"==> Start sampling ...")
     for i in range(start_index, min(end_index, len(dataset))):
         print(f"==> Sample: {i}/{min(end_index, len(dataset))-start_index}")
+        
+        # Check if file already exists
+        save_dir = os.path.join(save_root, dataset.dataset_name, "thoughts")
+        save_path = os.path.join(save_dir, f"{model_name_short}--{method}--{dataset.dataset_name}--{i}.json")
+        if os.path.exists(save_path):
+            print(f"==> Skip: {save_path} (already exists)")
+            continue
         
         # Get example
         example = dataset[i]
@@ -61,6 +75,11 @@ def sample(
         
         # Get ground truth answer
         gt = example["answer"]
+        
+        # Get explanation if available
+        explanation = example.get("explanation", "")
+        if not explanation and "rationale" in example:
+            explanation = example["rationale"]
         
         # Generate samples
         trial_thoughts = []
@@ -100,29 +119,63 @@ def sample(
         print(f"==> Time consumed: {end_time - start_time:.2f}s")
         print("="*20)
         
-        # Save results
-        features[i] = {
-            "query": query,
-            "answer": gt,
-            "trial_thoughts": trial_thoughts
+        # Generate answer options
+        answer_full_list = []
+        if hasattr(dataset, 'get_answers') and callable(getattr(dataset, 'get_answers')):
+            answer_full_list = dataset.get_answers(i)
+        elif hasattr(example, 'options') and isinstance(example['options'], list):
+            # If options are directly available in the example
+            answer_full_list = [f"Answer is: {opt}" for opt in example['options']]
+        else:
+            # Default format for multiple choice questions
+            if gt in ["A", "B", "C", "D", "E"]:
+                answer_full_list = [
+                    f"Answer is: A",
+                    f"Answer is: B",
+                    f"Answer is: C",
+                    f"Answer is: D",
+                    f"Answer is: E"
+                ]
+        
+        # Format the data according to the desired structure
+        trial_data = {
+            "dataset": dataset.dataset_name,
+            "model": model_name,
+            "method": method,
+            "model_input": query,
+            "answers": answer_full_list,
+            "answer_gt_full": f"Answer is: {gt}",
+            "answer_gt_short": gt,
+            "answer_gt_expl": explanation,
+            "trial_thoughts": trial_thoughts,
+            "accuracy": correct_cnt / num_samples
         }
         
+        # Save results
+        features[i] = trial_data
+        
         # Update metrics
-        accuracy = correct_cnt / num_samples
-        metrics["accuracy"].append(accuracy)
+        metrics["accuracy"].append(correct_cnt / num_samples)
         
         # Save to file if save_root is provided
         if save_root:
             # Create directory if it doesn't exist
-            save_dir = os.path.join(save_root, "thoughts")
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
             
             # Save features
-            model_name = model.model.split("/")[-1] if "/" in model.model else model.model
-            method = getattr(algorithm, 'method', type(algorithm).__name__)
-            save_path = os.path.join(save_dir, f"{model_name}--{method}--{dataset.dataset_name}--{i}.json")
-            save_results(features[i], save_path)
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(trial_data, f, ensure_ascii=False, indent=2)
+            
+            # Save tree data for search-based methods
+            if method in ["ToT_Task", "MCTS_Task"] and 'task' in locals() and 'root' in locals():
+                from lot.algorithms.utils import get_tree
+                df = get_tree(task, root)
+                tree_dir = os.path.join(save_root, dataset.dataset_name, "Tree")
+                if not os.path.exists(tree_dir):
+                    os.makedirs(tree_dir)
+                df_path = os.path.join(tree_dir, f"{model_name_short}--{method}--{dataset.dataset_name}--{i}.json")
+                df.to_json(df_path)
     
     # Calculate average metrics
     metrics["avg_accuracy"] = sum(metrics["accuracy"]) / len(metrics["accuracy"]) if metrics["accuracy"] else 0
@@ -139,7 +192,8 @@ def main(
     start_index: int = 0,
     end_index: int = 2,
     prompt_file: Optional[str] = None,
-    max_tokens: int = 2048
+    max_tokens: int = 2048,
+    save_root: str = "exp-data"
 ):
     """
     Main function to run the sampling process.
@@ -154,7 +208,18 @@ def main(
         start_index (int): Index of the first example to sample.
         end_index (int): Index of the last example to sample.
         prompt_file (Optional[str]): Path to a prompt file for the algorithm.
+        max_tokens (int): Maximum number of tokens for model responses.
+        save_root (str): Root directory to save results.
     """
+    print(f"==> model_name: {model_name}")
+    print(f"==> dataset_name: {dataset_name}")
+    print(f"==> data_path: {data_path}")
+    print(f"==> method: {method}")
+    print(f"==> num_samples: {num_samples}")
+    print(f"==> start_index: {start_index}")
+    print(f"==> end_index: {end_index}")
+    print(f"==> save_root: {save_root}")
+    
     # Load dataset
     dataset = load_dataset(dataset_name, data_path)
     
@@ -162,7 +227,7 @@ def main(
     model = opensource_API_models(model_name, max_tokens=max_tokens, port=port)
     
     # Initialize algorithm
-    if method in ['cot', 'l2m', 'zero-shot-cot', 'standard']:
+    if method in ['cot', 'l2m', 'zero-shot-cot']:
         algorithm = Prompt(method=method)
         # Set examples to empty list by default
         algorithm.set_example([])
@@ -183,7 +248,6 @@ def main(
         raise ValueError(f"Unsupported method: {method}")
     
     # Sample from dataset
-    save_root = "exp-data"
     features, metrics = sample(
         dataset=dataset,
         model=model,
@@ -191,7 +255,7 @@ def main(
         num_samples=num_samples,
         start_index=start_index,
         end_index=end_index,
-        save_root=f"{save_root}/{dataset_name}"
+        save_root=save_root
     )
     
     # Print metrics

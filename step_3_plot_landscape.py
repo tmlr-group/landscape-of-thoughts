@@ -2,9 +2,12 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.io as pio
 from fire import Fire
+import os 
 from plotly.subplots import make_subplots
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lot.visualization.visual_utils import *
+from lot.visualization.utils import *
 
 
 def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w_start_list):
@@ -128,8 +131,6 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
             ),
             row=2, col=i+1
         )
-
-        # fig.add_trace(go.Scatter(x=correct_x_segment,y=correct_y_segment,mode='markers',marker=dict(size=4,color='gray',colorscale='Greys',showscale=False,),showlegend=False,),row=2, col=i+1)
 
 
     # Add anchors to both plots
@@ -271,7 +272,7 @@ def draw(dataset_name, plot_datas, splited_T_2D, A_matrix_2D, num_all_thoughts_w
 
     return fig
 
-def main(method="", model_name="", dataset_name="", ROOT="./Landscape-Data",):
+def main(method="cot", model_name="Meta-Llama-3.1-70B-Instruct-Turbo", dataset_name="aqua", ROOT="./Landscape-Data",):
 
     METHODS = [method] if method else ['cot', 'l2m', 'mcts', 'tot']
     MODELS = [model_name] if model_name else ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']
