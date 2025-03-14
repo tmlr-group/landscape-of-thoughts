@@ -61,7 +61,7 @@ def main(
         )
         
         # Define save path
-        save_path = os.path.join(output_dir, f"FIG1_{model_name}-{dataset_name}-{methods[method_idx]}.png")
+        save_path = os.path.join(output_dir, f"{model_name}-{dataset_name}-{methods[method_idx]}.png")
         
         # Increment method index if not specific method
         if not method:
