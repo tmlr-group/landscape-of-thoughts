@@ -4,10 +4,10 @@ from fire import Fire
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from lot import sample_main, calculate_main, plot_main
+from lot import sample, calculate, plot
 
 def main(
-    task: str = 'sample',
+    task: str = 'all',
     model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct-Lite',
     port: int = 8000,
     dataset_name: str = 'aqua',
@@ -17,14 +17,9 @@ def main(
     start_index: int = 0,
     end_index: int = 2,
     prompt_file: Optional[str] = None,
-    topk: int = 10,
-    default_distance: int = 10,
-    debug: bool = False,
-    asyn: bool = False,
     max_tokens: int = 2048,
     plot_type: str = 'method',
     save_root: str = "exp-data",
-    output_dir: str = "figures/landscape"
 ):
     """
     Main function to run the entire pipeline: sampling, calculating, and plotting.
@@ -40,14 +35,9 @@ def main(
         start_index (int): Index of the first example to process.
         end_index (int): Index of the last example to process.
         prompt_file (Optional[str]): Path to a prompt file for the algorithm.
-        topk (int): Number of top thoughts to consider.
-        default_distance (int): Default distance value.
-        debug (bool): Whether to run in debug mode.
-        asyn (bool): Whether to run asynchronously.
         max_tokens (int): Maximum number of tokens for model responses.
-        plot_type (str): Type of plot ('method' or 'model').
+        plot_type (str): Type of plot ('method', 'model',).
         save_root (str): Root directory to save results.
-        output_dir (str): Directory to save output figures.
     """
     # Validate task
     valid_tasks = ['sample', 'calculate', 'plot', 'all']
@@ -59,7 +49,7 @@ def main(
         print("="*50)
         print("RUNNING SAMPLING TASK")
         print("="*50)
-        sample_main(
+        sample(
             model_name=model_name,
             port=port,
             dataset_name=dataset_name,
@@ -77,19 +67,13 @@ def main(
         print("="*50)
         print("RUNNING CALCULATION TASK")
         print("="*50)
-        calculate_main(
+        calculate(
             model_name=model_name,
-            port=port,
             dataset_name=dataset_name,
             data_path=data_path,
             method=method,
             start_index=start_index,
             end_index=end_index,
-            topk=topk,
-            default_distance=default_distance,
-            debug=debug,
-            asyn=asyn,
-            max_tokens=max_tokens,
             save_root=save_root
         )
     
@@ -99,13 +83,12 @@ def main(
         print("="*50)
         # Extract model name without path for plotting
         model_name_short = model_name.split("/")[-1] if "/" in model_name else model_name
-        plot_main(
+        plot(
             model_name=model_name_short,
             dataset_name=dataset_name,
             method=method,
             plot_type=plot_type,
             save_root=save_root,
-            output_dir=output_dir
         )
     
     print("="*50)
@@ -114,4 +97,4 @@ def main(
     return True
 
 if __name__ == "__main__":
-    Fire(main) 
+    Fire(main)

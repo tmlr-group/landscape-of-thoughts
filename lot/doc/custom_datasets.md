@@ -158,6 +158,41 @@ python main.py \
   --end_index 3
 ```
 
+You can also use the Python API directly:
+
+```python
+from lot import sample, calculate, plot
+
+# Sample reasoning traces
+features, metrics = sample(
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="my_dataset",
+    data_path="data/my_dataset.jsonl",
+    method="cot",
+    num_samples=10,
+    start_index=0,
+    end_index=3
+)
+
+# Calculate distance matrices
+distance_matrices = calculate(
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="my_dataset",
+    data_path="data/my_dataset.jsonl",
+    method="cot",
+    start_index=0,
+    end_index=3
+)
+
+# Generate visualizations
+plot(
+    model_name="Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="my_dataset",
+    method="cot",
+    plot_type="method"
+)
+```
+
 ## Advanced Usage
 
 ### Registering a Custom Dataset

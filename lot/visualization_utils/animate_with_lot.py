@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Configure Plotly to not automatically open browser windows
 pio.renderers.default = None
 
-from lot.visualization import create_animation_from_file
+from lot.visualization_utils import create_animation_from_file
 
 
 def main(

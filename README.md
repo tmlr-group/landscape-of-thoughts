@@ -64,10 +64,10 @@ For more advanced usage, you can directly import functions from the `lot` packag
 
 ```python
 # Option 1: Use individual functions from the lot package
-from lot import sample_main, calculate_main, plot_main
+from lot import sample, calculate, plot
 
 # Sample reasoning traces
-features, metrics = sample_main(
+features, metrics = sample(
     model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
     dataset_name="aqua",
     method="cot",
@@ -77,7 +77,7 @@ features, metrics = sample_main(
 )
 
 # Calculate distance matrices
-distance_matrices = calculate_main(
+distance_matrices = calculate(
     model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
     dataset_name="aqua",
     method="cot",
@@ -86,7 +86,7 @@ distance_matrices = calculate_main(
 )
 
 # Generate visualizations
-plot_main(
+plot(
     model_name="Meta-Llama-3-8B-Instruct-Lite",
     dataset_name="aqua",
     method="cot",
