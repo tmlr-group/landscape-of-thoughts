@@ -1,98 +1,166 @@
-# Trace of Thoughts Sampling
+<div align="center">
 
-This repository contains scripts for sampling reasoning traces from language models using different reasoning methods (CoT, ToT, MCTS) on various datasets.
+<h1>🌌 Landscape of Thoughts</h1>
+<h3>Visual Reasoning Paths of LLMs through Dimensional Projection</h3>
 
-## Scripts
+[![Paper](https://img.shields.io/badge/arXiv-2311.03191-b31b1b)](https://arxiv.org/abs/2311.03191)
+[![GitHub Stars](https://img.shields.io/github/stars/tmlr-group/DeepInception?style=social)](https://github.com/tmlr-group/DeepInception)
+[![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97-Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-of-Thought)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1QzAw5bW6RO1v-Tb68dowj5562nN3Cv_c?usp=sharing)
 
-### 1. `sample_reasoning_trace.py`
+|     ![demo](imgs/demo.png)     |
+| :----------------------------: |
+| Diagram of Lansacpe of Thought |
 
-This script is a direct implementation of the sampling logic from the original `step_1_sample_reasoning_trace.py` but using the `lot` library structure. It provides detailed control over the sampling process.
+</div>
 
-```bash
-python sample_reasoning_trace.py \
-  --model_name="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo" \
-  --dataset_name="aqua" \
-  --method="cot" \
-  --samples=10 \
-  --start_index=0 \
-  --end_index=50 \
-  --data_path="data/aqua.jsonl"
-```
+---
 
-### 2. `sample_with_lot.py`
+<!-- > [!TIP]
+> Hello -->
+<!-- > [!CAUTION]
+> Hello -->
 
-This script provides a higher-level interface using the `lot` library, with a `sample` function that can be used with any dataset, model, and algorithm.
+> [!NOTE]
+> Before start analysing your own data, you may need to setup environment as described in [here](res/setup_model.md).
 
-```bash
-python sample_with_lot.py \
-  --model_name="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo" \
-  --port=8000 \
-  --dataset_name="aqua" \
-  --data_path="data/aqua.jsonl" \
-  --method="cot" \
-  --num_samples=10 \
-  --start_index=0 \
-  --end_index=50 \
-  --prompt_file="prompts/aqua_cot.txt"
-```
+## 📋 Overview
 
-### 3. `simple_sample.py`
+Landscape of Thoughts (LoT) is a framework for visualizing and analyzing the reasoning paths of Large Language Models (LLMs). This library provides tools to:
 
-This script is a simplified version that closely follows the example in the suggestion.md file, demonstrating how to use the `lot` library with minimal code.
+1. Sample reasoning traces from LLMs using various methods (CoT, ToT, MCTS)
+2. Calculate distances between reasoning steps
+3. Visualize the reasoning landscape through dimensional projection
+
+## 🚄 Simplified API
+
+You can use our unified script (`main.py`) that combines all three steps into a single command:
 
 ```bash
-python simple_sample.py \
-  --model_name="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo" \
-  --dataset_name="aqua" \
-  --data_path="data/aqua.jsonl" \
-  --algorithm_name="cot" \
-  --num_samples=10 \
-  --prompt_file="prompts/aqua_cot.txt"
+python main.py \
+  --task all \
+  --model_name meta-llama/Meta-Llama-3-8B-Instruct-Lite \
+  --dataset_name aqua \
+  --method cot \
+  --num_samples 10 \
+  --start_index 0 \
+  --end_index 5 \
+  --plot_type method \
+  --output_dir figures/landscape
 ```
 
-## Supported Datasets
+The `task` parameter can be set to:
 
-- MMLU
-- AQuA
-- CommonsenseQA
-- StrategyQA
-- Custom JSON/JSONL datasets
+- `sample`: Only run the sampling step
+- `calculate`: Only run the calculation step
+- `plot`: Only run the visualization step
+- `all`: Run the complete pipeline
 
-## Supported Algorithms
+This unified approach simplifies the workflow by handling all steps with consistent parameters and proper sequencing.
 
-- Standard (direct answering)
-- Chain of Thought (CoT)
-- Tree of Thoughts (ToT)
-- Monte Carlo Tree Search (MCTS)
+## 🧩 Library Usage
 
-## Output Format
+For more advanced usage, you can directly import functions from the `lot` package or use the main function:
 
-The scripts save the sampling results in JSON files with the following structure:
+```python
+# Option 1: Use individual functions from the lot package
+from lot import sample_main, calculate_main, plot_main
+
+# Sample reasoning traces
+features, metrics = sample_main(
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="aqua",
+    method="cot",
+    num_samples=10,
+    start_index=0,
+    end_index=5
+)
+
+# Calculate distance matrices
+distance_matrices = calculate_main(
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="aqua",
+    method="cot",
+    start_index=0,
+    end_index=5
+)
+
+# Generate visualizations
+plot_main(
+    model_name="Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="aqua",
+    method="cot",
+)
+```
+
+```python
+# Option 2: Use the main function for the complete pipeline
+from main import main
+
+# Run the complete pipeline
+main(
+    task="all",
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="aqua",
+    method="cot",
+    num_samples=10,
+    start_index=0,
+    end_index=5,
+    plot_type="method"
+)
+
+# Or run just one step
+main(
+    task="sample",  # or "calculate" or "plot"
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    dataset_name="aqua",
+    method="cot",
+    num_samples=10,
+    start_index=0,
+    end_index=5
+)
+```
+
+## 🔧 Key Parameters
+
+- `model_name`: Name of the LLM to use (e.g., meta-llama/Meta-Llama-3-8B-Instruct-Lite)
+- `dataset_name`: Dataset to use for reasoning tasks (e.g., aqua)
+- `method`: Reasoning method (cot, tot, mcts, l2m)
+- `num_samples`: Number of reasoning traces to collect per example
+
+## 📊 Supported Datasets
+
+Support any (multiple) choice question data structured as follows:
 
 ```json
 {
-  "dataset": "aqua",
-  "model": "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-  "method": "cot",
-  "model_input": "...",
-  "answers": ["Answer is: A. ...", "Answer is: B. ...", ...],
-  "answer_gt_full": "Answer is: A. ...",
-  "answer_gt_short": "A",
-  "answer_gt_expl": "...",
-  "trial_thoughts": [
-    [["thought-1", "thought-2", ...], "A", true],
-    [["thought-1", "thought-2", ...], "B", false],
-    ...
-  ],
-  "accuracy": 0.7
+  "question": XXX,
+  "options": ["A)XX", "B)XX", "C)XX"],
+  "answer": "C"
 }
 ```
 
-For ToT and MCTS methods, the scripts also save the search trees in JSON format.
+## 🛠️ Creating Custom Datasets
 
-## Requirements
+You can create your own custom datasets to use with the Landscape of Thoughts framework. The framework supports multiple-choice question datasets in JSONL format.
 
-- Python 3.8+
-- lot library
-- fire
-- models.opensource_API (for model access)
+For detailed instructions on creating, validating, and using custom datasets, see our [Custom Datasets Guide](lot/doc/custom_datasets.md).
+
+## 🤖 Supported Models
+
+All open-source models are accessible via API, either vllm, or API provider, as long as the log probability of each token is accessible.
+
+## 📜 Citation
+
+```bibtex
+@inprocessing{
+  title={Landscape of Thought: XXX},
+  author={XXX},
+  booktitle={arXiv},
+  year={2025},
+}
+```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
