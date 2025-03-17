@@ -63,6 +63,9 @@ def main(
             save_root=save_root
         )
     
+    # The sampling task generates reasoning traces from the LLM using the specified method.
+    # It collects multiple reasoning paths for each example in the dataset, which will be
+    # used for distance calculation and visualization in subsequent steps.
     if task == 'calculate' or task == 'all':
         print("="*50)
         print("RUNNING CALCULATION TASK")
@@ -77,6 +80,9 @@ def main(
             save_root=save_root
         )
     
+    # The plotting task generates static visualizations of the reasoning paths.
+    # It creates plots to analyze the performance of the reasoning method across
+    # different examples or models.
     if task == 'plot' or task == 'all':
         print("="*50)
         print("RUNNING PLOTTING TASK")

@@ -93,34 +93,6 @@ plot(
 )
 ```
 
-```python
-# Option 2: Use the main function for the complete pipeline
-from main import main
-
-# Run the complete pipeline
-main(
-    task="all",
-    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
-    dataset_name="aqua",
-    method="cot",
-    num_samples=10,
-    start_index=0,
-    end_index=5,
-    plot_type="method"
-)
-
-# Or run just one step
-main(
-    task="sample",  # or "calculate" or "plot"
-    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
-    dataset_name="aqua",
-    method="cot",
-    num_samples=10,
-    start_index=0,
-    end_index=5
-)
-```
-
 ## 🔧 Key Parameters
 
 - `model_name`: Name of the LLM to use (e.g., meta-llama/Meta-Llama-3-8B-Instruct-Lite)
