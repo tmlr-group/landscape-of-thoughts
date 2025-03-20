@@ -5,21 +5,16 @@
 
 [![Paper](https://img.shields.io/badge/arXiv-2311.03191-b31b1b)](https://arxiv.org/abs/2311.03191)
 [![GitHub Stars](https://img.shields.io/github/stars/tmlr-group/DeepInception?style=social)](https://github.com/tmlr-group/DeepInception)
-[![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97-Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-of-Thought)
+[![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97-Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-Data)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1QzAw5bW6RO1v-Tb68dowj5562nN3Cv_c?usp=sharing)
 
 |     ![demo](imgs/demo.png)     |
 | :----------------------------: |
-| Diagram of Lansacpe of Thought |
+| Diagram of Landscape of Thoughts |
 
 </div>
 
 ---
-
-<!-- > [!TIP]
-> Hello -->
-<!-- > [!CAUTION]
-> Hello -->
 
 > [!NOTE]
 > Before start analysing your own data, you may need to setup environment as described in [here](res/setup_model.md).
