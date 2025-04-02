@@ -34,3 +34,7 @@ transformers>=4.30.0
 openai>=0.27.0
 together>=1.2.0  # Added for Together AI API
 
+# others
+sympy
+pylatexenc
+umap

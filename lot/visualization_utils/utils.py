@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-import umap.umap_ as umap
+# import umap.umap_ as umap
 from scipy.interpolate import interp1d
 from sklearn.manifold import TSNE
 from tqdm import tqdm

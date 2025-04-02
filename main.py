@@ -11,7 +11,7 @@ def main(
     model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct-Lite',
     port: int = 8000,
     dataset_name: str = 'aqua',
-    data_path: str = 'data/aqua.jsonl',
+    data_path: str = './lot/data/aqua.jsonl',
     method: str = 'cot',
     num_samples: int = 10,
     start_index: int = 0,
