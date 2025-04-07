@@ -20,6 +20,7 @@ def main(
     max_tokens: int = 2048,
     plot_type: str = 'method',
     save_root: str = "exp-data",
+    output_dir: str = "figures/landscape",
     local: bool = False,
     local_api_key: str = "token-abc123"
 ):
@@ -103,6 +104,7 @@ def main(
             method=method,
             plot_type=plot_type,
             save_root=save_root,
+            output_dir=output_dir
         )
     
     print("="*50)

@@ -4,10 +4,9 @@ Landscape visualization utilities for LOT.
 
 import numpy as np
 import plotly.graph_objects as go
-import plotly.io as pio
 from plotly.subplots import make_subplots
 import os
-from typing import Dict, List, Tuple, Any, Optional
+from typing import Dict, List, Tuple, Any
 from tqdm import tqdm
 
 from .utils import process_chain_points, split_list
