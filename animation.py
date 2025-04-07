@@ -696,7 +696,7 @@ def create_animations(
 def main(
     model_name: str = 'Meta-Llama-3.1-8B-Instruct-Turbo',
     dataset_name: str = 'aqua',
-    method: str = 'cot',
+    method: str = '',
     plot_type: str = 'method',
     num_frames: int = 10,
     save_root: str = "Landscape-Data",
