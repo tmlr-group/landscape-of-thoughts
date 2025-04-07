@@ -18,15 +18,6 @@ DEFAULT_CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "da
 TOGETHER_MODEL_INFO_PATH = os.path.join(DEFAULT_CACHE_DIR, "togetherAI_model_infos.json")
 CACHE_EXPIRY = 7 * 24 * 60 * 60  # 7 days in seconds
 
-def create_directory_if_not_exists(directory: str) -> None:
-    """Create a directory if it doesn't exist.
-    
-    Args:
-        directory: Path to the directory to create.
-    """
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
 def get_api_key(provider: str = "together") -> Optional[str]:
     """Get API key for the specified provider from environment variables.
     
@@ -121,7 +112,7 @@ def get_together_models(api_key: Optional[str] = None, force_refresh: bool = Fal
         })
     
     # Save to cache
-    create_directory_if_not_exists(os.path.dirname(TOGETHER_MODEL_INFO_PATH))
+    os.makedirs(os.path.dirname(TOGETHER_MODEL_INFO_PATH), exist_ok=True)
     try:
         with open(TOGETHER_MODEL_INFO_PATH, 'w') as f:
             json.dump(models, f, indent=2)
