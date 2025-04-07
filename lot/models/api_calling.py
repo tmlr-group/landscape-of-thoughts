@@ -12,10 +12,6 @@ from together import Together
 from .base import GenerateOutput, LanguageModel
 from .utils import get_api_key, get_together_models
 
-# Load model information from cache or fetch it if needed
-model_infos = get_together_models()
-together_model_list = [item["model_name"] for item in model_infos]
-
 class opensource_API_models(LanguageModel):
     """
     A class for interacting with open source models via APIs like Together AI or local VLLM server.
@@ -25,21 +21,20 @@ class opensource_API_models(LanguageModel):
     """
     def __init__(self, 
         model:str, max_tokens:int=2048, temperature=0.0, additional_prompt=None, port=8000,
-        system_prompt_type = 'CoT'
-        ):
+        system_prompt_type = 'CoT', local=True, local_api_key="token-abc123"
+    ):
         self.model = model
         self.max_tokens = max_tokens
         self.temperature = temperature
         self.additional_prompt = additional_prompt
         
         # Determine which API to use based on the model name
-        if self.model in together_model_list:
+        if local:
+            self.api_key = local_api_key  # Dummy api_key for local server
+            self.client = OpenAI(base_url=f"http://localhost:{port}/v1", api_key=self.api_key)
+        else:
             self.api_key = get_api_key("together")
             self.client = Together(api_key=self.api_key)
-        else:
-            # For local VLLM server
-            self.api_key = "token-abc123"  # Dummy token for local server
-            self.client = OpenAI(base_url=f"http://localhost:{port}/v1", api_key=self.api_key)
 
         # for rate limiting
         self.RATE_LIMIT = 40  # requests per minute; rate=40 cause 2min for Llama-3.1-70B-Instruct-Turbo

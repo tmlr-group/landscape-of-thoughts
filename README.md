@@ -8,8 +8,8 @@
 [![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97-Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-Data)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1QzAw5bW6RO1v-Tb68dowj5562nN3Cv_c?usp=sharing)
 
-|     ![demo](imgs/demo.png)     |
-| :----------------------------: |
+|      ![demo](imgs/demo.png)      |
+| :------------------------------: |
 | Diagram of Landscape of Thoughts |
 
 </div>
@@ -34,14 +34,16 @@ You can use our unified script (`main.py`) that combines all three steps into a 
 ```bash
 python main.py \
   --task all \
-  --model_name meta-llama/Meta-Llama-3-8B-Instruct-Lite \
+  --model_name meta-llama/Llama-3.2-1B-Instruct \
   --dataset_name aqua \
   --method cot \
   --num_samples 10 \
   --start_index 0 \
   --end_index 5 \
   --plot_type method \
-  --output_dir figures/landscape
+  --output_dir figures/landscape \
+  --local \
+  --local_api_key token-abc123
 ```
 
 The `task` parameter can be set to:
@@ -125,7 +127,7 @@ All open-source models are accessible via API, either vllm, or API provider, as 
   author={Zhanke Zhou and Zhaocheng Zhu and Xuan Li and Mikhail Galkin and Xiao Feng and Sanmi Koyejo and Jian Tang and Bo Han},
   journal={arXiv preprint arXiv:2503.22165},
   year={2025},
-  url={https://arxiv.org/abs/2503.22165}, 
+  url={https://arxiv.org/abs/2503.22165},
 }
 ```
 

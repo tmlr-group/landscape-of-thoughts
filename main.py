@@ -20,6 +20,8 @@ def main(
     max_tokens: int = 2048,
     plot_type: str = 'method',
     save_root: str = "exp-data",
+    local: bool = False,
+    local_api_key: str = "token-abc123"
 ):
     """
     Main function to run the entire pipeline: sampling, calculating, and plotting.
@@ -38,6 +40,8 @@ def main(
         max_tokens (int): Maximum number of tokens for model responses.
         plot_type (str): Type of plot ('method', 'model',).
         save_root (str): Root directory to save results.
+        local (bool): Whether to use local server.
+        local_api_key (str): API key for the local server.
     """
     # Validate task
     valid_tasks = ['sample', 'calculate', 'plot', 'all']
@@ -60,7 +64,9 @@ def main(
             end_index=end_index,
             prompt_file=prompt_file,
             max_tokens=max_tokens,
-            save_root=save_root
+            save_root=save_root,
+            local=local,
+            local_api_key=local_api_key
         )
     
     # The sampling task generates reasoning traces from the LLM using the specified method.
@@ -77,7 +83,9 @@ def main(
             method=method,
             start_index=start_index,
             end_index=end_index,
-            save_root=save_root
+            save_root=save_root,
+            local=local,
+            local_api_key=local_api_key
         )
     
     # The plotting task generates static visualizations of the reasoning paths.

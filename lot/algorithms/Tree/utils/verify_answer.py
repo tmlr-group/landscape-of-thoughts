@@ -8,11 +8,7 @@ def verify_float(answer: float, output: str):
         print(f'The output is empty and cannot match the answer!\n')
         return False
 
-    if '综上所述，' in output:
-        spl_ans = output.split('综上所述，')[-1]
-        spl_ans = spl_ans.strip()
-    else:
-        spl_ans = output.strip()
+    spl_ans = output.strip()
 
     try:
         match = re.findall(r'[^^{.\-0123456789]-?[0-9]+\.?[0-9]*[^^}.0123456789]', spl_ans)[-1][1:][:-1]
@@ -54,14 +50,7 @@ def verify_choice(answer: str, output: str):
 
     check_list = ['A', 'B', 'C', 'D', 'E']
 
-    if '综上所述，最终答案是:' in output:
-        spl_ans = output.split('综上所述，最终答案是:')[-1]
-        spl_ans = spl_ans.strip()
-    elif '综上所述，' in output:
-        spl_ans = output.split('综上所述，')[-1]
-        spl_ans = spl_ans.strip()
-    else:
-        spl_ans = output.strip()
+    spl_ans = output.strip()
 
     # standard (adjustable)
     for choice in check_list:

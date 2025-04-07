@@ -183,14 +183,16 @@ def sample(
     model_name: str = 'meta-llama/Meta-Llama-3-8B-Instruct-Lite',
     port: int = 8000,
     dataset_name: str = 'aqua',
-    data_path: str = 'data/aqua.jsonl',
+    data_path: str = 'lot/data/aqua.jsonl',
     method: str = 'cot',
     num_samples: int = 10,
     start_index: int = 0,
     end_index: int = 2,
     prompt_file: Optional[str] = None,
     max_tokens: int = 2048,
-    save_root: str = "exp-data"
+    save_root: str = "exp-data",
+    local: bool = False,
+    local_api_key: str = "token-abc123"
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:
     """
     Main function to run the sampling process.
@@ -207,6 +209,8 @@ def sample(
         prompt_file (Optional[str]): Path to a prompt file for the algorithm.
         max_tokens (int): Maximum number of tokens for model responses.
         save_root (str): Root directory to save results.
+        local (bool): Whether to use local server.
+        local_api_key (str): API key for the local server.
         
     Returns:
         Tuple[Dict[str, Any], Dict[str, float]]: Features and metrics from sampling.
@@ -224,7 +228,7 @@ def sample(
     dataset = load_dataset(dataset_name, data_path)
     
     # Initialize model
-    model = opensource_API_models(model_name, max_tokens=max_tokens, port=port)
+    model = opensource_API_models(model_name, max_tokens=max_tokens, local=local, port=port, local_api_key=local_api_key)
     
     # Initialize algorithm
     if method in ['cot', 'l2m', 'zero-shot-cot']:

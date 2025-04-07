@@ -86,7 +86,7 @@ class MCTS_Task(SearchTask):
         # get_proposal(prompt, model_name=self.propose_method, temperature=self.temperature, max_tokens=self.max_tokens, base_url=self.base_url)
         
         if not response:
-            print('获得下一步失败！\n')
+            print('Failed to get next step.\n')
             return ''
 
         # if len(response) > 5:
@@ -97,171 +97,93 @@ class MCTS_Task(SearchTask):
         #     p = p + _ + ' '
         p = response.strip()
 
-        if self.lang == 'zh':
-            if '下一步:' in p:
-                stp = p.split('下一步:')[1].strip()
-                if len(stp) < 2:
-                    print('输出步骤过短！\n')
-                    return ''
-                if stp in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = '步骤' + str(step_n) + ':' + stp
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            elif '步骤' in p and ':' in p:
-                pre_len = len(p.split(':')[0])
-                p_ = p[pre_len:]
-                p_ = p_.split('步骤')[0].strip()
-                if len(p_) < 3:
-                    print('输出步骤过短！\n')
-                    return ''
-                if p_[1:] in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = '步骤' + str(step_n) + p_
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            else:
-                print('输出格式有误！\n')
+        if "Next step:" in p:
+            stp = p.split('Next step:')[1].strip()
+            if len(stp) < 2:
+                print('Output step too short!\n')
+                return ''
+            if stp in y:
+                print('Output step repeated!\n')
                 return ''
 
+            revised_ = 'Step ' + str(step_n) + ': ' + stp
+            print(f'Standardized new step:{revised_}\n')
+            return revised_ + '\n'
+
+        elif "Step" in p and ":" in p:
+            pre_len = len(p.split(':')[0])
+            p_ = p[pre_len:]
+            p_ = p_.split('Step')[0].strip()
+            if len(p_) < 4:
+                print('Output step too short!\n')
+                return ''
+            p_ = p_[1:].strip()
+            if p_ in y:
+                print('Output step repeated!\n')
+                return ''
+
+            revised_ = 'Step ' + str(step_n) + ': ' + p_
+            print(f'Standardized new step:{revised_}\n')
+            return revised_ + '\n'
+
         else:
-            if "Next step:" in p:
-                stp = p.split('Next step:')[1].strip()
-                if len(stp) < 2:
-                    print('输出步骤过短！\n')
-                    return ''
-                if stp in y:
-                    print('输出步骤重复！\n')
-                    return ''
+            p_ = p.strip()
+            if len(p_) < 3:
+                print('Output step too short!\n')
+                return ''
+            if p_ in y:
+                print('Output step repeated!\n')
+                return ''
 
-                revised_ = 'Step ' + str(step_n) + ': ' + stp
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
+            revised_ = 'Step ' + str(step_n) + ': ' + p_
+            print(f'Standardized new step:{revised_}\n')
+            return revised_ + '\n'
 
-            elif "Step" in p and ":" in p:
-                pre_len = len(p.split(':')[0])
-                p_ = p[pre_len:]
-                p_ = p_.split('Step')[0].strip()
-                if len(p_) < 4:
-                    print('输出步骤过短！\n')
-                    return ''
-                p_ = p_[1:].strip()
-                if p_ in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = 'Step ' + str(step_n) + ': ' + p_
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            else:
-                p_ = p.strip()
-                if len(p_) < 3:
-                    print('输出步骤过短！\n')
-                    return ''
-                if p_ in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = 'Step ' + str(step_n) + ': ' + p_
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-    def get_next_step_use_reflection(self, y, step_n, reflection):  # 暂不支持 case-prompt
+    def get_next_step_use_reflection(self, y, step_n, reflection):  # not supported case-prompt
         if self.propose_method == 'gpt' or self.propose_method == 'local':
             propose_prompt = self.zero_single_propose_wrap_use_reflection_gpt(self.question, y, step_n, reflection,
                                                                               self.lang)
         else:
             propose_prompt = self.zero_single_propose_wrap_use_reflection(self.question, y, step_n, reflection,
                                                                           self.lang)
-        # response = get_proposal(propose_prompt, self.propose_method, self.temperature, self.max_tokens, self.seed,
-        #                         self.max_length,
-        #                         self.truncation, self.do_sample, self.max_new_tokens)
         response = self.model.generate(propose_prompt).text[0]
         if not response:
-            print('获得下一步失败！\n')
+            print('Failed to get next step.\n')
             return ''
 
-        # if len(response) > 5:
-        #     response = response[:5]
-
-        # p = ''
-        # for _ in response:
-        #     p = p + _ + ' '
         p = response.strip()
-
-        if self.lang == 'zh':
-            if '下一步:' in p:
-                stp = p.split('下一步:')[1].strip()
-                if len(stp) < 2:
-                    print('输出步骤过短！\n')
-                    return ''
-                if stp in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = '步骤' + str(step_n) + ':' + stp
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            elif '步骤' in p and ':' in p:
-                pre_len = len(p.split(':')[0])
-                p_ = p[pre_len:]
-                p_ = p_.split('步骤')[0].strip()
-                if len(p_) < 3:
-                    print('输出步骤过短！\n')
-                    return ''
-                if p_[1:] in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = '步骤' + str(step_n) + p_
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            else:
-                print('输出格式有误！\n')
+        if "Next step:" in p:
+            stp = p.split('Next step:')[1].strip()
+            if len(stp) < 2:
+                print('Output step too short!\n')
                 return ''
+            if stp in y:
+                print('Output step repeated!\n')
+                return ''
+
+            revised_ = 'Step ' + str(step_n) + ': ' + stp
+            print(f'Standardized new step:{revised_}\n')
+            return revised_ + '\n'
+
+        elif "Step" in p and ":" in p:
+            pre_len = len(p.split(':')[0])
+            p_ = p[pre_len:]
+            p_ = p_.split('Step')[0].strip()
+            if len(p_) < 4:
+                print('Output step too short!\n')
+                return ''
+            p_ = p_[1:].strip()
+            if p_ in y:
+                print('Output step repeated!\n')
+                return ''
+
+            revised_ = 'Step ' + str(step_n) + ': ' + p_
+            print(f'Standardized new step:{revised_}\n')
+            return revised_ + '\n'
 
         else:
-            if "Next step:" in p:
-                stp = p.split('Next step:')[1].strip()
-                if len(stp) < 2:
-                    print('输出步骤过短！\n')
-                    return ''
-                if stp in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = 'Step ' + str(step_n) + ': ' + stp
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            elif "Step" in p and ":" in p:
-                pre_len = len(p.split(':')[0])
-                p_ = p[pre_len:]
-                p_ = p_.split('Step')[0].strip()
-                if len(p_) < 4:
-                    print('输出步骤过短！\n')
-                    return ''
-                p_ = p_[1:].strip()
-                if p_ in y:
-                    print('输出步骤重复！\n')
-                    return ''
-
-                revised_ = 'Step ' + str(step_n) + ': ' + p_
-                print(f'标准化后新的步骤:{revised_}\n')
-                return revised_ + '\n'
-
-            else:
-                print('输出格式有误！\n')
-                return ''
+            print('Output format error!\n')
+            return ''
 
     def get_simple_reflection(self, y, step_n):
         if step_n == 1:
@@ -277,37 +199,24 @@ class MCTS_Task(SearchTask):
         cnt = 3
         response = []
         while not response and cnt:
-            # response = get_proposal(reflection_prompt, self.propose_method, self.temperature, self.max_tokens,
-            #                         self.seed,
-            #                         self.max_length,
-            #                         self.truncation, self.do_sample, 128)
             response = self.model.generate(reflection_prompt).text[0]
             cnt -= 1
         if not response:
-            print('获得意见失败！\n')
+            print('Failed to get feedback.\n')
             return '<end>'
 
         p = response.strip()
 
-        if self.lang == 'zh':
-            if '已解决' in p or '已经解决' in p:
-                if step_n > 1:
-                    print('此步问题已解决，停止下探。\n')
-                    print('标准化后的意见: <end>\n')
-                    return '<end>'
-            print('标准化后的意见: <continue>\n')
-            return '<continue>'
 
+        if 'unsolved' in p or step_n <= 1:
+            print('Standardized feedback: <continue>\n')
+            return '<continue>'
+        elif 'solved' in p:
+            print('Standardized feedback: <end>\n')
+            return '<end>'
         else:
-            if 'unsolved' in p or step_n <= 1:
-                print('标准化后的意见: <continue>\n')
-                return '<continue>'
-            elif 'solved' in p:
-                print('标准化后的意见: <end>\n')
-                return '<end>'
-            else:
-                print('标准化后的意见: <continue>\n')
-                return '<continue>'
+            print('Standardized feedback: <continue>\n')
+            return '<continue>'
 
     def get_reflection(self, y, step_n):
         if self.propose_method in ['local', 'mistral', 'llama'] and self.lang == 'en':
@@ -327,153 +236,69 @@ class MCTS_Task(SearchTask):
         cnt = 3
         response = []
         while not response and cnt:
-            # response = get_proposal(reflection_prompt, self.propose_method, self.temperature, self.max_tokens,
-            #                         self.seed,
-            #                         self.max_length,
-            #                         self.truncation, self.do_sample, self.max_new_tokens)
             response = self.model.generate(reflection_prompt).text[0]
             cnt -= 1
         if not response:
-            print('获得意见失败！\n')
+            print('Failed to get feedback.\n')
             return ''
 
         p = response.strip()
 
-        if self.lang == 'zh':
-            if '已解决' in p or '已经解决' in p:
-                if step_n > 1:
-                    print('此步问题已解决，停止下探。\n')
-                    return '<end>'
-                else:
-                    return ''
-
-            if '意见:' not in p:
-                print('输出格式有误！\n')
-                return ''
-            revised_ = p.split('意见:')[1]
-            print(f'标准化后的意见:{revised_}\n')
-            return revised_
-
+        if 'Problem solved' in p:
+            print('Standardized feedback: <end>\n')
+            return '<end>'
         else:
-            if 'Problem solved' in p:
-                print('标准化后的意见: <end>\n')
-                return '<end>'
-            else:
-                if 'Analysis:' not in p:
-                    print('输出格式有误！\n')
-                    return ''
-                revised_ = p.split('Analysis:')[1].strip()
-                print(f'标准化后的意见:{revised_}\n')
-                return revised_
+            if 'Analysis:' not in p:
+                print('Output format error!\n')
+                return ''
+            revised_ = p.split('Analysis:')[1].strip()
+            print(f'Standardized feedback:{revised_}\n')
+            return revised_
 
     def get_step_value(self, y):
         if y in self.value_cache.keys():
             return self.value_cache[y]
 
         if self.value_method == 'local':
-            if self.lang == 'zh':
-                prompt_answer = '问题:' + self.question + '\n步骤:\n' + '【答案】' + y
-            else:
-                prompt_answer = 'Problem: ' + self.question + '\nSolution:\n' + y
-            # value = get_value(prompt_answer, self.value_method, self.temperature, self.max_tokens, self.seed,
-            #                   self.max_length, self.low, self.high)
+            prompt_answer = 'Problem: ' + self.question + '\nSolution:\n' + y
             value = self.model.generate(prompt_answer, temperature=self.temperature, max_tokens=self.max_tokens).text[0]
-            print(f'获得评分:{value}\n')
+            print(f'Score:{value}\n')
             self.value_cache.update({y: value})
             return value
 
         else:
             prompt = self.value_prompt_wrap(self.question, y)
-            # response = get_value(prompt, self.value_method, self.temperature, self.max_tokens, self.seed,
-                                #  self.max_length, self.low, self.high)
             response = self.model.generate(prompt, temperature=self.temperature, max_tokens=self.max_tokens).text[0]
             value = self.value_outputs_unwrap(response, self.low, self.high)
-            print(f'获得评分:{value}\n')
+            print(f'Score:{value}\n')
             self.value_cache.update({y: value})
             return value
 
     def get_summary(self, y):
-        if self.lang == 'zh':
-            if self.evaluate == 'scibench':
-                prompt = self.evaluate_summary_prompt_wrap(self.question, y)
-            elif self.evaluate == 'scieval':
-                prompt = self.general_evaluate_summary_prompt_wrap(self.question, y)
-            else:
-                prompt = self.summary_prompt_wrap(self.question, y)
 
-            # response = get_proposal(prompt, self.propose_method, self.temperature, self.max_tokens, self.seed,
-            #                         self.max_length,
-            #                         self.truncation, self.do_sample, 128)
+        prompt = self.MATH_summary_prompt_wrap(self.question, y)
+        response = self.model.generate(prompt).text[0]
+        if not response:
+            print('Failed to get summary.\n')
+            return ''
+        p = ''
+        for _ in response:
+            p = p + _
+        summ = p.strip()
+        print(f'Summary:{summ}\n')
 
-            response = self.model.generate(prompt).text[0]
-
-            if not response:
-                print('获得综述失败！\n')
-                return ''
-            p = ''
-            for _ in response:
-                p = p + _ + ' '
-            p = p.strip()
-
-            if self.evaluate:
-                if len(p) < 1:
-                    print('获得综述过短！\n')
-                    return ''
-
-                if '综上所述，最终答案是:' not in p:
-                    summ = '综上所述，最终答案是:' + p
-                    print(f'获得综述:{summ}\n')
-                    return summ
-                else:
-                    summ = '综上所述，最终答案是:' + p.split('综上所述，最终答案是:')[-1]
-                    print(f'获得综述:{summ}\n')
-                    return summ
-
-            else:
-                if len(p) < 1:
-                    print('获得综述过短！\n')
-                    return ''
-
-                p = p.replace('综上所述,', '综上所述，')
-                if '综上所述，' not in p:
-                    summ = '综上所述，' + p
-                    print(f'获得综述:{summ}\n')
-                    return summ
-                else:
-                    summ = '综上所述，' + p.split('综上所述，')[-1]
-                    print(f'获得综述:{summ}\n')
-                    return summ
-
-        else:
-            prompt = self.MATH_summary_prompt_wrap(self.question, y)
-            # response = get_proposal(prompt, self.propose_method, self.temperature, self.max_tokens, self.seed,
-            #                         self.max_length,
-            #                         self.truncation, self.do_sample, 128)
-            response = self.model.generate(prompt).text[0]
-            if not response:
-                print('获得综述失败！\n')
-                return ''
-            p = ''
-            for _ in response:
-                p = p + _
-            summ = p.strip()
-            print(f'获得综述:{summ}\n')
-
-            return summ
+        return summ
 
     def get_MATH_summary(self, y):
         prompt = self.MATH_summary_prompt_wrap(self.question, y)
-        # response = get_proposal(prompt, self.propose_method, self.temperature, self.max_tokens, self.seed,
-        #                         self.max_length,
-        #                         self.truncation, self.do_sample, 128)
         response = self.model.generate(prompt).text[0]
         if not response:
-            print('获得综述失败！\n')
+            print('Failed to get summary.\n')
             return ''
 
         p = response.strip()
 
-        print(f'获得综述:{p}\n')
+        print(f'Summary:{p}\n')
         return p
 
     def verify_end_nodes(self, root):
@@ -500,10 +325,7 @@ class MCTS_Task(SearchTask):
                 summ = extract_summary_from_solution(leaf.y)
                 leaf.summary = summ
 
-            # if self.verify_method == 'string':
             result = exact_match_score(summ, self.answer)
-            # else:
-            #     result = llm_verify(summ, self.answer)
             if result:
                 if self.reward_model_type == 'vm':
                     leaf.min_steps_to_correct = 1
