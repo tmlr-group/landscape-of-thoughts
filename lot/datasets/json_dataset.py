@@ -20,7 +20,7 @@ class JsonDataset(BaseDataset):
         options_field: Optional[str] = "options",
         answer_field: str = "answer",
         explanation_field: Optional[str] = None,
-        is_jsonl: bool = False,
+        is_jsonl: bool = True,
         options_format: Optional[Callable] = None,
         answer_format: Optional[Callable] = None,
         dataset_name: Optional[str] = None
@@ -202,6 +202,15 @@ class JsonDataset(BaseDataset):
         
         return default
     
+    def get_answer(self, idx: int) -> str:
+        """
+        Get the answer for the dataset.
+        
+        Returns:
+            str: The answer.
+        """
+        return self.processed_data[idx]["answer"]
+
     def format_prompt(self, idx: int, method: str, default_prompt: str = None) -> str:
         """
         Format a prompt for a specific example and reasoning method.

@@ -24,7 +24,7 @@ class opensource_API_models(LanguageModel):
     """
     def __init__(self, 
         model:str, max_tokens:int=2048, temperature=0.0, additional_prompt=None, port=8000,
-        system_prompt_type = 'CoT', local=True, local_api_key="token-abc123"
+        system_prompt_type = 'CoT', local=False, local_api_key="token-abc123"
     ):
         self.model = model
         self.max_tokens = max_tokens

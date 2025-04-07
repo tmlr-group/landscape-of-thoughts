@@ -1,3 +1,0 @@
-# Landsacpe Document
-
-## 📚 Data Structure

@@ -730,15 +730,13 @@ def main(
             num_frames=num_frames
         )
         
-        save_path = os.path.join(output_dir, f"Correct-Animation-{model_name}-{dataset_name}-{methods[method_idx]}.gif")
+        save_path = os.path.join(output_dir, f"Correct-Animation-{model_name}-{dataset_name}-{methods[method_idx]}.html")
         print(f"==> Saving correct figure to: {save_path}")
-        pio.write_image(correct_fig, save_path, scale=6, width=1500, height=350)
-        pio.write_html(correct_fig, save_path.replace(".gif", ".html"), scale=6, width=1500, height=350)
+        pio.write_html(correct_fig, save_path)
         
-        save_path = os.path.join(output_dir, f"Wrong-Animation-{model_name}-{dataset_name}-{methods[method_idx]}.gif")
+        save_path = os.path.join(output_dir, f"Wrong-Animation-{model_name}-{dataset_name}-{methods[method_idx]}.html")
         print(f"==> Saving wrong figure to: {save_path}")
-        pio.write_image(wrong_fig, save_path, scale=6, width=1500, height=350)
-        pio.write_html(wrong_fig, save_path.replace(".gif", ".html"), scale=6, width=1500, height=350)
+        pio.write_html(wrong_fig, save_path)
         
         # Increment method index if not specific method
         if not method:

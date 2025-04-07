@@ -191,6 +191,9 @@ def sample(
     prompt_file: Optional[str] = None,
     max_tokens: int = 2048,
     save_root: str = "exp-data",
+    answer_field: str = "correct",
+    options_field: str = "options",
+    question_field: str = "question",
     local: bool = False,
     local_api_key: str = "token-abc123"
 ) -> Tuple[Dict[str, Any], Dict[str, float]]:
@@ -211,6 +214,9 @@ def sample(
         save_root (str): Root directory to save results.
         local (bool): Whether to use local server.
         local_api_key (str): API key for the local server.
+        answer_field (str): Field name for the answer.
+        options_field (str): Field name for the options.
+        question_field (str): Field name for the question.
         
     Returns:
         Tuple[Dict[str, Any], Dict[str, float]]: Features and metrics from sampling.
@@ -225,7 +231,12 @@ def sample(
     print(f"==> save_root: {save_root}")
     
     # Load dataset
-    dataset = load_dataset(dataset_name, data_path)
+    dataset = load_dataset(
+        dataset_name, data_path,     
+        answer_field=answer_field,
+        options_field=options_field,
+        question_field=question_field
+    )
     
     # Initialize model
     model = opensource_API_models(model_name, max_tokens=max_tokens, local=local, port=port, local_api_key=local_api_key)

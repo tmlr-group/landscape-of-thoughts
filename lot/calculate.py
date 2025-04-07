@@ -196,8 +196,11 @@ def calculate(
     debug: bool = False,
     max_tokens: int = 1000,
     save_root: str = "exp-data",
+    answer_field: str = "correct",
+    options_field: str = "options",
+    question_field: str = "question",
     local: bool = False,
-    local_api_key: str = "token-abc123"
+    local_api_key: str = "token-abc123",
 ) -> Dict[int, np.ndarray]:
     """
     Main function to calculate distance matrices for reasoning traces.
@@ -216,6 +219,9 @@ def calculate(
         save_root (str): Root directory to save results.
         local (bool): Whether to use local server.
         local_api_key (str): API key for the local server.
+        answer_field (str): Field name for the answer.
+        options_field (str): Field name for the options.
+        question_field (str): Field name for the question.
         
     Returns:
         Dict[int, np.ndarray]: Dictionary mapping example indices to their distance matrices.
@@ -229,7 +235,7 @@ def calculate(
     print(f"==> save_root: {save_root}")
     
     # Load dataset
-    dataset = load_dataset(dataset_name, data_path)
+    dataset = load_dataset(dataset_name, data_path, answer_field=answer_field, options_field=options_field, question_field=question_field)
     
     # Initialize model
     model = opensource_API_models(model=model_name, max_tokens=max_tokens, port=port, local=local, local_api_key=local_api_key)

@@ -8,7 +8,7 @@
 [![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97-Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-Data)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1QzAw5bW6RO1v-Tb68dowj5562nN3Cv_c?usp=sharing)
 
-|      ![demo](imgs/demo.png)      |
+|     ![demo](assets/demo.png)     |
 | :------------------------------: |
 | Diagram of Landscape of Thoughts |
 
