@@ -17,7 +17,7 @@
 ---
 
 > [!NOTE]
-> Before start analysing your own data, you may need to setup environment as described in [here](doc/setup_model.md).
+> Before start analysing your own data, you may need to setup environment as described in [setup environment](doc/setup_environment.md) and [setup model](doc/setup_model.md).
 
 ## 📋 Overview
 

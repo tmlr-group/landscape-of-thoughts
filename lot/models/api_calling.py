@@ -7,7 +7,10 @@ from typing import Optional, Union
 
 import numpy as np
 from openai import OpenAI
-from together import Together
+try:
+    from together import Together
+except ImportError:
+    print("together is not installed, please install it by `pip install togetherai`")
 
 from .base import GenerateOutput, LanguageModel
 from .utils import get_api_key, get_together_models
