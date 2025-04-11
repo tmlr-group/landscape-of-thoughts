@@ -1,13 +1,5 @@
 # 🔧 Preparation
 
-## 🐍 Setting up Environment
-
-```bash
-# Create environment
-conda create -n landscape python=3.10
-pip3 install -r requirements.txt
-```
-
 ## 🤖 Setting up Model
 
 We recommand using TogetherAI API to get access to the model, or using vllm to host your own model, see [here](res/setup_model.md).

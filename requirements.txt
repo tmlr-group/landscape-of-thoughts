@@ -35,3 +35,4 @@ pylatexenc>=2.10.0
 matplotlib>=3.10.0
 kaleido>=0.2.1
 together>=1.5.5
+nbformat>=4.2.0

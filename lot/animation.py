@@ -2,11 +2,12 @@ import numpy as np
 import plotly.graph_objects as go
 from typing import Dict, List, Any
 
-from lot.visualization_utils.utils import process_chain_points, split_list
-from lot.visualization_utils.landscape import process_landscape_data
+from .visualization_utils.utils import process_chain_points, split_list
+from .visualization_utils.landscape import process_landscape_data
 import plotly.io as pio
 import os
 from fire import Fire
+
 def create_animations(
     dataset_name: str, 
     plot_datas: Dict[int, Dict[str, Any]], 

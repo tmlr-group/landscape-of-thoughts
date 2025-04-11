@@ -17,7 +17,7 @@
 ---
 
 > [!NOTE]
-> Before start analysing your own data, you may need to setup environment as described in [setup environment](doc/setup_environment.md) and [setup model](doc/setup_model.md).
+> Before start analysing your own data, you may need to setup model as described in [setup model](doc/setup_model.md).
 
 ## 📋 Overview
 
@@ -26,6 +26,14 @@ Landscape of Thoughts (LoT) is a framework for visualizing and analyzing the rea
 1. Sample reasoning traces from LLMs using various methods (CoT, ToT, MCTS)
 2. Calculate distances between reasoning steps
 3. Visualize the reasoning landscape through dimensional projection
+
+## 🐍 Setting up Environment
+
+```bash
+# Create environment
+conda create -n landscape python=3.10
+pip3 install -r requirements.txt
+```
 
 ## 🚄 Simplified API
 
@@ -60,7 +68,6 @@ This unified approach simplifies the workflow by handling all steps with consist
 For more advanced usage, you can directly import functions from the `lot` package or use the main function:
 
 ```python
-# Option 1: Use individual functions from the lot package
 from lot import sample, calculate, plot
 
 # Sample reasoning traces

@@ -363,19 +363,39 @@ def move_titles_to_bottom(fig, column_titles, y_position=-0.12):
             showarrow=False,
             xref="paper",
             yref="paper",
-            font=dict(size=14)
+            font=dict(size=22),
+            xanchor="center"  # Center the text horizontally
         )
     
     # Remove the original titles
-    fig.update_layout(annotations=fig.layout.annotations[len(column_titles):])
+    fig.update_layout(annotations=fig.layout.annotations)
     
     return fig
 
+def rearrange_columns(matrix, k):
+    """
+    Rearranges the columns of a given N x C matrix, 
+    placing the k-th column first and shifting the others.
+    
+    Parameters:
+    - matrix: a numpy array of shape (N, C).
+    - k: the index (0-based) of the column to move to the first position.
+    
+    Returns:
+    - A new numpy array with columns rearranged.
+    
+    This function is only used in load_data()
+    """
+    # Determine the new order of columns
+    new_order = [k] + [i for i in range(matrix.shape[1]) if i != k]
+    
+    # Rearrange and return the new matrix
+    return matrix[:, new_order]
 
 def process_landscape_data(
     model: str,
     dataset: str,
-    methods: List[str] = ["cot"],
+    methods: List[str] = ["cot", "l2m", "mcts", "tot"],
     plot_type: str = 'method',
     ROOT: str = "./exp-data"
 ) -> Tuple[List[np.ndarray], np.ndarray, List[Dict[int, Dict[str, Any]]], List[List[int]]]:
@@ -525,10 +545,25 @@ def load_landscape_data(
         with open(distance_matrix_file, 'rb') as f:
             distance_matrix = pkl.load(f)
         
+        # draw the landscape
+        #######################################    
+        if "strategyqa" in thoughts_file:
+            labels_anchors = ["Start", 'A', 'B']
+            gt_idx = labels_anchors.index(answer_gt_short)
+        elif "mmlu" in thoughts_file:
+            labels_anchors = ["Start", 'A', 'B', 'C', 'D']
+            gt_idx = labels_anchors.index(answer_gt_short)
+        else:
+            labels_anchors = ["Start", 'A', 'B', 'C', 'D', 'E']
+            gt_idx = labels_anchors.index(answer_gt_short)
+            
         # Normalize the distance matrix
-        distance_matrix = distance_matrix[:num_all_thoughts+1, 1:]  # get T matrix and the first row of the A matrix
-        distance_matrix = distance_matrix / np.linalg.norm(distance_matrix, axis=1, ord=1, keepdims=True)  # normalize
+        distance_matrix = distance_matrix[:num_all_thoughts+1, 1:] # get T matrix and the first row of the A matrix
+        distance_matrix = distance_matrix / np.linalg.norm(distance_matrix, axis=1, ord=1, keepdims=True) # normalize the D (T, Y)
         
+        # sort the source_matrix to make the GT at the first row (GT, Y_c, ... other answers)
+        distance_matrix = rearrange_columns(distance_matrix, gt_idx-1)
+
         # Store data
         plot_datas[sample_idx] = {
             "num_thoughts_each_chain": num_thoughts_each_chain,
