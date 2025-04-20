@@ -122,14 +122,22 @@ class PlotlySlidingContourVisualizer:
             color_list = px.colors.sequential.Blues
             self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, color_list[1]], 
                     [0.5, color_list[3]], [1, color_list[5]]]
+            self.scatter_color = color_list[5]  # Use a darker blue for scatter points
         elif color_theme == 'red':
             # Override the first color to be transparent white for lowest density
             color_list = px.colors.sequential.Reds
             self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, color_list[1]], 
                                 [0.5, color_list[3]], [1, color_list[5]]]
+            self.scatter_color = color_list[5]  # Use a darker red for scatter points
+        elif color_theme == 'green':
+            color_list = px.colors.sequential.Greens
+            self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, color_list[1]], 
+                                [0.5, color_list[3]], [1, color_list[5]]]
+            self.scatter_color = color_list[5]  # Use a darker green for scatter points
         else:  # default to viridis
             self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, 'rgba(68,1,84,0.3)'], 
                               [0.5, 'rgba(65,182,196,0.5)'], [1, 'rgba(253,231,37,0.8)']]
+            self.scatter_color = 'rgba(68,1,84,0.8)'  # Use a dark purple for scatter points
         
         # Calculate the number of frames
         self.n_frames = max(1, (len(self.x_data) - self.window_size) // self.step_size + 1)
@@ -139,9 +147,6 @@ class PlotlySlidingContourVisualizer:
         
         # Get data range for consistent axes - include both data and fixed points
         self._compute_axis_ranges()
-        
-        # Compute the global maximum density value for consistent scale across all frames
-        self.max_density = self._compute_max_density()
         
         # Create frames for the animation
         self.frames = self._create_frames()
@@ -173,31 +178,7 @@ class PlotlySlidingContourVisualizer:
         # Store the range info for potential normalization
         self.x_scale = self.x_max - self.x_min
         self.y_scale = self.y_max - self.y_min
-    
-    def _compute_max_density(self):
-        """Compute the maximum density value across all frames for consistent scaling."""
-        max_density = 1  # Start with a minimum value of 1
-        
-        for frame_idx in range(self.n_frames):
-            # Get window data
-            start_idx = frame_idx * self.step_size
-            end_idx = min(start_idx + self.window_size, len(self.x_data))
-            
-            x_window = self.x_data[start_idx:end_idx]
-            y_window = self.y_data[start_idx:end_idx]
-            
-            # Compute a 2D histogram to estimate density
-            H, _, _ = np.histogram2d(
-                x_window, 
-                y_window, 
-                bins=30,  # Use 30 bins for estimation
-                range=[[self.x_min, self.x_max], [self.y_min, self.y_max]]
-            )
-            
-            # Update the maximum density if needed
-            max_density = max(max_density, np.max(H))
-        
-        return max_density
+
     
     def _create_fixed_point_traces(self):
         """Create trace objects for fixed points to display in each frame."""
@@ -253,56 +234,78 @@ class PlotlySlidingContourVisualizer:
             
             x_window = self.x_data[start_idx:end_idx]
             y_window = self.y_data[start_idx:end_idx]
+
+            # Calculate left and right edges as percentages (0-100%)
+            left_percent = (start_idx / len(self.x_data)) * 100
+            right_percent = (end_idx / len(self.x_data)) * 100
+            # Calculate center position percentage
+            center_percent = (left_percent + right_percent) / 2
             
-            # Start with base traces
+            # Start with base traces - use the same trace indices as the initial figure
             frame_traces = [
-                # Scatter plot
+                # Scatter plot - use uid=0 to match the initial trace
                 go.Scatter(
                     x=x_window, 
                     y=y_window, 
                     mode='markers',
-                    marker=dict(size=4, opacity=0.5, color='black'),
+                    marker=dict(size=4, opacity=0.5, color=self.scatter_color),
                     showlegend=False,
-                    hoverinfo='none'
+                    hoverinfo='none',
+                    uid='scatter-points'  # Consistent ID for animation transitions
                 ),
-                # # Use Histogram2dContour for direct contour from points
-                # go.Histogram2dContour(
-                #     x=x_window,
-                #     y=y_window,
-                #     colorscale=self.colorscale,
-                #     showscale=False,  # Hide colorbar
-                #     histfunc='count',
-                #     contours=dict(
-                #         showlines=True,
-                #         coloring='fill',
-                #         start=1,  # Start above zero to exclude empty areas
-                #         end=self.max_density,  # Use global max for consistent scale
-                #         size=(self.max_density - 1) / 10  # Divide range into 10 levels
-                #     ),
-                #     autobinx=True,
-                #     autobiny=True,
-                #     autocontour=False,  # Disable autocontour to use our custom levels
-                #     opacity=0.8,
-                #     showlegend=False,
-                #     xaxis='x',
-                #     yaxis='y',
-                #     reversescale=False,
-                #     hoverinfo='none',
-                #     zmin=1,  # Set minimum z value to exclude zeros
-                #     zmax=self.max_density  # Set maximum z value for consistent scale
-                # )
             ]
             
-            # Add fixed point traces to each frame
-            frame_traces.extend(fixed_point_traces)
+            # Add fixed point traces to each frame with consistent IDs
+            for i, trace in enumerate(fixed_point_traces):
+                # Clone trace with a consistent ID
+                fixed_trace = go.Scatter(
+                    x=trace.x,
+                    y=trace.y,
+                    mode=trace.mode,
+                    marker=trace.marker,
+                    showlegend=trace.showlegend,
+                    hoverinfo=trace.hoverinfo,
+                    uid=f'fixed-point-{i}'  # Consistent ID for each fixed point
+                )
+                frame_traces.append(fixed_trace)
             
             # Create a frame with all traces, ensuring consistent axis ranges
             frame = go.Frame(
                 data=frame_traces,
                 name=str(frame_idx),
                 layout=go.Layout(
-                    xaxis=dict(range=self.x_range),
-                    yaxis=dict(range=self.y_range)
+                    xaxis=dict(
+                        range=self.x_range,
+                        showgrid=True,
+                        gridcolor='rgba(200,200,200,0.2)',
+                        gridwidth=1
+                    ),
+                    yaxis=dict(
+                        range=self.y_range,
+                        showgrid=True,
+                        gridcolor='rgba(200,200,200,0.2)',
+                        gridwidth=1
+                    ),
+                    annotations=[
+                        dict(
+                            text=f"Progress: {center_percent:.1f}%",
+                            x=0.02,  # Position at the left side
+                            y=0.98,  # Position at the top
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(
+                                family="Arial",
+                                size=14,
+                                color=self.scatter_color
+                            ),
+                            bgcolor="rgba(255, 255, 255, 0.7)",
+                            bordercolor="rgba(0, 0, 0, 0.2)",
+                            borderwidth=1,
+                            borderpad=4,
+                            align="left"
+                        )
+                    ]
                 )
             )
             frames.append(frame)
@@ -315,8 +318,6 @@ class PlotlySlidingContourVisualizer:
         
         Parameters:
         -----------
-        auto_play : bool
-            Whether to automatically play the animation.
         play_interval : int
             Delay between frames in milliseconds.
         
@@ -331,49 +332,37 @@ class PlotlySlidingContourVisualizer:
         x_window = self.x_data[start_idx:end_idx]
         y_window = self.y_data[start_idx:end_idx]
         
+        # Calculate initial center_percent
+        left_percent = (start_idx / len(self.x_data)) * 100
+        right_percent = (end_idx / len(self.x_data)) * 100
+        center_percent = (left_percent + right_percent) / 2
+        
         # Initialize with the first frame data
         self.fig.add_trace(
             go.Scatter(
                 x=x_window, 
                 y=y_window, 
                 mode='markers',
-                marker=dict(size=4, opacity=0.5, color='black'),
+                marker=dict(size=4, opacity=0.5, color=self.scatter_color),
                 showlegend=False,
-                hoverinfo='none'
+                hoverinfo='none',
+                uid='scatter-points'  # Consistent ID to match frames
             )
         )
         
-        # self.fig.add_trace(
-        #     go.Histogram2dContour(
-        #         x=x_window,
-        #         y=y_window,
-        #         colorscale=self.colorscale,
-        #         showscale=False,  # Hide colorbar
-        #         histfunc='count',
-        #         contours=dict(
-        #             showlines=True,
-        #             coloring='fill',
-        #             start=1,  # Start above zero to exclude empty areas
-        #             end=self.max_density,  # Use global max for consistent scale
-        #             size=(self.max_density - 1) / 10  # Divide range into 10 levels
-        #         ),
-        #         autobinx=True,
-        #         autobiny=True,
-        #         autocontour=False,  # Disable autocontour to use our custom levels
-        #         opacity=0.8,
-        #         showlegend=False,
-        #         xaxis='x',
-        #         yaxis='y',
-        #         reversescale=False,
-        #         hoverinfo='none',
-        #         zmin=1,  # Set minimum z value to exclude zeros
-        #         zmax=self.max_density  # Set maximum z value for consistent scale
-        #     )
-        # )
-        
         # Add fixed points to the initial display
-        for trace in self._create_fixed_point_traces():
-            self.fig.add_trace(trace)
+        for i, trace in enumerate(self._create_fixed_point_traces()):
+            # Add the trace with a consistent UID that will match frames
+            fixed_trace = go.Scatter(
+                x=trace.x,
+                y=trace.y,
+                mode=trace.mode,
+                marker=trace.marker,
+                showlegend=trace.showlegend,
+                hoverinfo=trace.hoverinfo,
+                uid=f'fixed-point-{i}'  # Consistent ID to match frames
+            )
+            self.fig.add_trace(fixed_trace)
         
         # Update layout
         self.fig.update_layout(
@@ -383,7 +372,9 @@ class PlotlySlidingContourVisualizer:
             xaxis=dict(
                 range=self.x_range, 
                 showticklabels=False,  # Hide tick labels
-                showgrid=False,        # Hide grid
+                showgrid=True,        # Show grid
+                gridcolor='rgba(200,200,200,0.2)',  # Light gray grid
+                gridwidth=1,
                 zeroline=False,        # Hide zero line
                 showline=False,        # Hide axis line
                 autorange=False,       # Disable autorange to keep consistent scale
@@ -392,7 +383,9 @@ class PlotlySlidingContourVisualizer:
             yaxis=dict(
                 range=self.y_range, 
                 showticklabels=False,  # Hide tick labels
-                showgrid=False,        # Hide grid
+                showgrid=True,        # Show grid
+                gridcolor='rgba(200,200,200,0.2)',  # Light gray grid
+                gridwidth=1,
                 zeroline=False,        # Hide zero line
                 showline=False,        # Hide axis line
                 autorange=False,       # Disable autorange to keep consistent scale
@@ -413,9 +406,9 @@ class PlotlySlidingContourVisualizer:
                             'args': [
                                 None, 
                                 {
-                                    'frame': {'duration': play_interval, 'redraw': True},
+                                    'frame': {'duration': play_interval, 'redraw': False},
                                     'fromcurrent': True,
-                                    'transition': {'duration': 0}
+                                    'transition': {'duration': 300, 'easing': 'cubic-in-out'}
                                 }
                             ]
                         },
@@ -425,7 +418,7 @@ class PlotlySlidingContourVisualizer:
                             'args': [
                                 [None], 
                                 {
-                                    'frame': {'duration': 0, 'redraw': True},
+                                    'frame': {'duration': 0, 'redraw': False},
                                     'mode': 'immediate',
                                     'transition': {'duration': 0}
                                 }
@@ -460,7 +453,7 @@ class PlotlySlidingContourVisualizer:
                     'currentvalue': {
                         'visible': False  # Hide current frame indicator
                     },
-                    'transition': {'duration': 0},
+                    'transition': {'duration': 300, 'easing': 'cubic-in-out'},
                     'pad': {'b': 0, 't': 0},
                     'len': 0.9,
                     'x': 0.1,
@@ -470,9 +463,9 @@ class PlotlySlidingContourVisualizer:
                             'args': [
                                 [frame.name],
                                 {
-                                    'frame': {'duration': 0, 'redraw': True},
+                                    'frame': {'duration': play_interval, 'redraw': False},
                                     'mode': 'immediate',
-                                    'transition': {'duration': 0}
+                                    'transition': {'duration': 300, 'easing': 'cubic-in-out'}
                                 }
                             ],
                             'label': str(i+1),

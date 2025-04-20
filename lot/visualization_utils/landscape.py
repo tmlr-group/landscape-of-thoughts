@@ -556,7 +556,17 @@ def load_landscape_data(
         else:
             labels_anchors = ["Start", 'A', 'B', 'C', 'D', 'E']
             gt_idx = labels_anchors.index(answer_gt_short)
-            
+        
+        # Skip the broken distance matrix
+        expected_dims = {
+            "commonsenseqa": 6,
+            "aqua": 6,
+            "mmlu": 5,
+            "strategyqa": 3
+        }
+        if distance_matrix.shape[1] != expected_dims.get(dataset):
+            continue
+
         # Normalize the distance matrix
         distance_matrix = distance_matrix[:num_all_thoughts+1, 1:] # get T matrix and the first row of the A matrix
         distance_matrix = distance_matrix / np.linalg.norm(distance_matrix, axis=1, ord=1, keepdims=True) # normalize the D (T, Y)
