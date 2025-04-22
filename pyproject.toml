@@ -81,12 +81,9 @@ dev = [
 
 [project.urls]
 "Paper" = "https://arxiv.org/abs/2503.22165"
-"Homepage": "https://github.com/tmlr-group/landscape-of-thoughts",
-"Bug Tracker": "https://github.com/tmlr-group/landscape-of-thoughts/issues",
-"Documentation": "https://github.com/tmlr-group/landscape-of-thoughts",
-
-[project.scripts]
-lot = "main:main"
+"Homepage" = "https://github.com/tmlr-group/landscape-of-thoughts"
+"Bug Tracker" = "https://github.com/tmlr-group/landscape-of-thoughts/issues"
+"Documentation" = "https://github.com/tmlr-group/landscape-of-thoughts"
 
 [tool.hatch.build.targets.wheel]
 packages = ["lot"]

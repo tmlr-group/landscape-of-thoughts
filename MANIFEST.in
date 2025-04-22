@@ -2,7 +2,6 @@ include LICENSE.md
 include README.md
 include requirements.txt
 include pyproject.toml
-include main.py
 
 recursive-include lot *.py
 recursive-include lot *.jsonl

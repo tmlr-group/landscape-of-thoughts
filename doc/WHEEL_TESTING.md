@@ -26,6 +26,8 @@ This will create both source distribution (`.tar.gz`) and wheel distribution (`.
 
 ```bash
 # Install the wheel (replace X.X.X with the actual version)
+conda create -n lot_pip python=3.10
+conda activate lot_pip
 pip install dist/landscape_of_thoughts-0.1.0-py3-none-any.whl
 
 # Verify installation

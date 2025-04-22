@@ -8,6 +8,7 @@ from .models import opensource_API_models
 from .datasets import load_dataset, extract_answer_from_response, parse_thoughts
 from .algorithms import Prompt, MCTS_Task, ToT_Task
 from .algorithms.utils import get_tree
+from lot.datasets.dataset_loader import DATASET_TYPES
 
 
 def sample_with_lot(
@@ -230,14 +231,37 @@ def sample(
     print(f"==> end_index: {end_index}")
     print(f"==> save_root: {save_root}")
     
+    # Prepare kwargs for dataset loading - only pass custom fields when not using standard datasets
+    dataset_kwargs = {}
+    
+    # Only add these fields if the dataset is not a predefined one or if a custom field is used
+    if dataset_name.lower() not in DATASET_TYPES:
+        dataset_kwargs.update({
+            'answer_field': answer_field,
+            'options_field': options_field,
+            'question_field': question_field
+        })
+    
     # Load dataset
     dataset = load_dataset(
-        dataset_name, data_path,     
-        answer_field=answer_field,
-        options_field=options_field,
-        question_field=question_field
+        dataset_name, data_path, **dataset_kwargs
     )
     
+    # Check if all files already exist
+    model_name_short = model_name.split("/")[-1] if "/" in model_name else model_name
+    save_dir = os.path.join(save_root, dataset_name, "thoughts")
+    all_files_exist = True
+    
+    for i in range(start_index, min(end_index, len(dataset))):
+        save_path = os.path.join(save_dir, f"{model_name_short}--{method}--{dataset_name}--{i}.json")
+        if not os.path.exists(save_path):
+            all_files_exist = False
+            break
+    
+    if all_files_exist:
+        print(f"==> Skip: All files already exist")
+        return None, None
+
     # Initialize model
     model = opensource_API_models(model_name, max_tokens=max_tokens, local=local, port=port, local_api_key=local_api_key)
     

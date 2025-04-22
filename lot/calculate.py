@@ -234,9 +234,24 @@ def calculate(
     print(f"==> end_index: {end_index}")
     print(f"==> save_root: {save_root}")
     
+
     # Load dataset
     dataset = load_dataset(dataset_name, data_path, answer_field=answer_field, options_field=options_field, question_field=question_field)
+
+    # Check if all files already exist
+    model_name_short = model_name.split("/")[-1] if "/" in model_name else model_name
+    save_dir = os.path.join(save_root, dataset_name, "distance_matrix")
+    all_files_exist = True
+    for i in range(start_index, min(end_index, len(dataset))):
+        save_path = os.path.join(save_dir, f"{model_name_short}--{method}--{dataset_name}--{i}.pkl")
+        if not os.path.exists(save_path):
+            all_files_exist = False
+            break
     
+    if all_files_exist:
+        print(f"==> Skip: All files already exist")
+        return None, None
+
     # Initialize model
     model = opensource_API_models(model=model_name, max_tokens=max_tokens, port=port, local=local, local_api_key=local_api_key)
     
