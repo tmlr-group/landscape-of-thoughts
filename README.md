@@ -4,7 +4,6 @@
 <h3>Visualizing the Reasoning Process of Large Language Models</h3>
 
 [![Paper](https://img.shields.io/badge/arXiv-2503.22165-b31b1b)](https://arxiv.org/abs/2503.22165)
-[![GitHub Stars](https://img.shields.io/github/stars/tmlr-group/DeepInception?style=social)](https://github.com/tmlr-group/DeepInception)
 [![Hugging Face Datasets](https://img.shields.io/badge/%F0%9F%A4%97-Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-Data)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IgLREaEw-FeJbKn9NfYGIyaex2QhgCT2?usp=sharing)
 
