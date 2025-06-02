@@ -85,6 +85,9 @@ dev = [
 "Bug Tracker" = "https://github.com/tmlr-group/landscape-of-thoughts/issues"
 "Documentation" = "https://github.com/tmlr-group/landscape-of-thoughts"
 
+[project.scripts]
+lot = "main:main"
+
 [tool.hatch.build.targets.wheel]
 packages = ["lot"]
 include = ["lot/**/*", "main.py"]
