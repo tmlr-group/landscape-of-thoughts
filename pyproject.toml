@@ -86,11 +86,11 @@ dev = [
 "Documentation" = "https://github.com/tmlr-group/landscape-of-thoughts"
 
 [project.scripts]
-lot = "main:main"
+lot = "lot.main:cli"
 
 [tool.hatch.build.targets.wheel]
 packages = ["lot"]
-include = ["lot/**/*", "main.py"]
+include = ["lot/**/*"]
 
 [tool.black]
 line-length = 100

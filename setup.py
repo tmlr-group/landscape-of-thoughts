@@ -80,7 +80,7 @@ setup(
     py_modules=["main"],
     entry_points={
         "console_scripts": [
-            "lot=main:main",
+            "lot=lot.main:main",
         ],
     },
     project_urls={

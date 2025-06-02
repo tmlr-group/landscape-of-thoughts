@@ -56,7 +56,8 @@ pip install dist/landscape_of_thoughts-0.1.0-py3-none-any.whl
 lot --help
 
 # Run a minimal example
-lot --task sample --model_name meta-llama/Llama-3.2-1B-Instruct --dataset_name aqua --method cot --num_samples 1 --start_index 0 --end_index 1 --local
+lot --task all --model_name meta-llama/Llama-3.2-1B-Instruct --dataset_name aqua --method cot --num_samples 10 --start_index 0 --end_index 5 --plot_type method --output_dir figures/landscape --local --local_api_key token-abc123
+
 
 # Deactivate when done
 deactivate

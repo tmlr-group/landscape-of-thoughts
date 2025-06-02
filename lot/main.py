@@ -1,8 +1,6 @@
 import os
 from typing import Optional
 from fire import Fire
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from lot import sample, calculate, plot
 
@@ -22,13 +20,14 @@ def main(
     save_root: str = "exp-data",
     output_dir: str = "figures/landscape",
     local: bool = False,
-    local_api_key: str = "token-abc123"
+    local_api_key: str = "token-abc123",
+    **kwargs
 ):
     """
     Main function to run the entire pipeline: sampling, calculating, and plotting.
     
     Args:
-        task (str): Task to perform ('sample', 'calculate', 'plot', or 'all').
+        task (str): Task to perform ('sample', 'calculate', 'plot', or 'all'). Use 'help' to see this message.
         model_name (str): Name of the model to use.
         port (int): Port for the API server.
         dataset_name (str): Name of the dataset to use.
@@ -44,11 +43,29 @@ def main(
         local (bool): Whether to use local server.
         local_api_key (str): API key for the local server.
     """
-    # Validate task
-    valid_tasks = ['sample', 'calculate', 'plot', 'all']
-    if task not in valid_tasks:
-        raise ValueError(f"Invalid task: {task}. Must be one of {valid_tasks}")
-    
+    print("="*50)
+    print("CONFIGURATION:")
+    print(f"task: {task}")
+    print(f"model_name: {model_name}")
+    print(f"dataset_name: {dataset_name}")
+    print(f"data_path: {data_path}")
+    print(f"method: {method}")
+    print(f"num_samples: {num_samples}")
+    print(f"start_index: {start_index}")
+    print(f"end_index: {end_index}")
+    print(f"prompt_file: {prompt_file}")
+    print(f"max_tokens: {max_tokens}")
+    print(f"plot_type: {plot_type}")
+    print(f"save_root: {save_root}")
+    print(f"output_dir: {output_dir}")
+    print(f"local: {local}")
+    print(f"local_api_key: {local_api_key}")
+    if kwargs:
+        print("\nAdditional arguments:")
+        for k, v in kwargs.items():
+            print(f"{k}: {v}")
+    print("="*50)
+
     # Run the specified task(s)
     if task == 'sample' or task == 'all':
         print("="*50)
@@ -67,7 +84,8 @@ def main(
             max_tokens=max_tokens,
             save_root=save_root,
             local=local,
-            local_api_key=local_api_key
+            local_api_key=local_api_key,
+            **kwargs
         )
     
     # The sampling task generates reasoning traces from the LLM using the specified method.
@@ -86,7 +104,8 @@ def main(
             end_index=end_index,
             save_root=save_root,
             local=local,
-            local_api_key=local_api_key
+            local_api_key=local_api_key,
+            **kwargs
         )
     
     # The plotting task generates static visualizations of the reasoning paths.
@@ -104,13 +123,17 @@ def main(
             method=method,
             plot_type=plot_type,
             save_root=save_root,
-            output_dir=output_dir
+            output_dir=output_dir,
+            **kwargs
         )
     
+
     print("="*50)
     print("ALL TASKS COMPLETED")
     print("="*50)
-    return True
+
+def cli():
+    Fire(main)
 
 if __name__ == "__main__":
-    Fire(main)
+    cli()
