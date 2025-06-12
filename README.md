@@ -31,7 +31,10 @@ Landscape of Thoughts (LoT) is a framework for visualizing and analyzing the rea
 ```bash
 # Create environment
 conda create -n landscape python=3.10
+conda activate landscape
 pip3 install -r requirements.txt
+# Use --use-pep517 flag to avoid deprecation warning with fire package
+pip install fire --use-pep517
 ```
 
 ## 🚄 Simplified API
@@ -50,7 +53,8 @@ python main.py \
   --plot_type method \
   --output_dir figures/landscape \
   --local \
-  --local_api_key token-abc123
+  --local_api_key token-abc123 \
+  --port 8000 # <== this should align with the port you used to host the model
 ```
 
 The `task` parameter can be set to:
@@ -119,11 +123,37 @@ Support any (multiple) choice question data structured as follows:
 
 You can create your own custom datasets to use with the Landscape of Thoughts framework. The framework supports multiple-choice question datasets in JSONL format.
 
-For detailed instructions on creating, validating, and using custom datasets, see our [Custom Datasets Guide](lot/doc/custom_datasets.md).
+For detailed instructions on creating, validating, and using custom datasets, see our [Custom Datasets Guide](./doc/custom_datasets.md).
 
 ## 🤖 Supported Models
 
-All open-source models are accessible via API, either vllm, or API provider, as long as the log probability of each token is accessible.
+All open-source models are accessible via API, either vllm, or API provider, as long as the log probability of each token is accessible. An example is given as follows for using `Qwen/Qwen2.5-3B-Instruct`
+
+Host the model locally using vllm:
+
+```bash
+vllm serve Qwen/Qwen2.5-3B-Instruct \
+  --api-key "token-api-123" \
+  --download_dir YOUR_MODEL_PATH \
+  --port 8000
+```
+
+Then run the following command to use the model:
+
+```bash
+python main.py \
+  --task all \
+  --model_name Qwen/Qwen2.5-3B-Instruct \ # <== change to your model name
+  --dataset_name aqua \
+  --method cot \
+  --num_samples 10 \
+  --start_index 0 \
+  --end_index 5 \
+  --plot_type method \
+  --output_dir figures/landscape \
+  --local \
+  --local_api_key token-abc123
+```
 
 ## 📜 Citation
 

@@ -47,6 +47,7 @@ def main(
     print("CONFIGURATION:")
     print(f"task: {task}")
     print(f"model_name: {model_name}")
+    print(f"port: {port}")
     print(f"dataset_name: {dataset_name}")
     print(f"data_path: {data_path}")
     print(f"method: {method}")
@@ -97,6 +98,7 @@ def main(
         print("="*50)
         calculate(
             model_name=model_name,
+            port=port,
             dataset_name=dataset_name,
             data_path=data_path,
             method=method,
