@@ -112,7 +112,17 @@ def load_json_dataset(
     """
     # Get dataset field mapping
     fields = DATASET_FIELDS.get(dataset_name, {})
+    for key, value in kwargs.items():
+        if key in fields:
+            fields[key] = value
+        else:
+            raise ValueError(f"Invalid field: {key} for dataset {dataset_name}")
     
+    # Pop the keys from kwargs if they were used in the fields mapping above
+    for key in list(fields.keys()):
+        if key in kwargs:
+            kwargs.pop(key)
+
     # Determine if it's a JSONL format
     is_jsonl = data_path.endswith('.jsonl')
     

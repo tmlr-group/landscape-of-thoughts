@@ -395,6 +395,7 @@ def rearrange_columns(matrix, k):
 def process_landscape_data(
     model: str,
     dataset: str,
+    models: List[str] = ["Llama-3.2-1B-Instruct", "Llama-3.2-3B-Instruct", "Meta-Llama-3.1-8B-Instruct-Turbo", "Meta-Llama-3.1-70B-Instruct-Turbo"],
     methods: List[str] = ["cot", "l2m", "mcts", "tot"],
     plot_type: str = 'method',
     ROOT: str = "./exp-data"
@@ -423,8 +424,9 @@ def process_landscape_data(
     list_num_all_thoughts_w_start_list = []
     list_plot_data = []
 
+    # Aggregate and t-SNE down-project the data from different models
     if plot_type == "model":
-        for model_name in ['Llama-3.2-1B-Instruct', 'Llama-3.2-3B-Instruct', 'Meta-Llama-3.1-8B-Instruct-Turbo', 'Meta-Llama-3.1-70B-Instruct-Turbo']:
+        for model_name in models:
             distance_matries, num_all_thoughts_w_start_list, plot_datas = load_landscape_data(model=model_name, dataset=dataset, method=methods[0], ROOT=ROOT)
             list_distance_matrix.append(distance_matries)
             list_plot_data.append(plot_datas)
@@ -435,6 +437,7 @@ def process_landscape_data(
         # We cannot make all the samples with different num_answer to process together
         raise NotImplementedError
     
+    # Aggregate and t-SNE down-project the data from different methods
     elif plot_type == "method":
         for method in methods:
             distance_matries, num_all_thoughts_w_start_list, plot_datas = load_landscape_data(model=model, dataset=dataset, method=method, ROOT=ROOT)
@@ -512,11 +515,12 @@ def load_landscape_data(
     # Sort files by index
     files.sort(key=lambda x: int(x.split("--")[-1].split(".")[0]))
     
-    for file_name in tqdm(files, desc=f"Loading data for {model} {method} {dataset}"):
+    for file_name in tqdm(files, desc=f"Loading plot data for {model} {method} {dataset}"):
         sample_idx = int(file_name.split("--")[-1].split(".")[0])
         
         # Load thoughts file
         thoughts_file = f'{ROOT}/{dataset}/thoughts/{model}--{method}--{dataset}--{sample_idx}.json'
+
         if not os.path.exists(thoughts_file):
             print(f"Thoughts file not found: {thoughts_file}")
             continue
@@ -556,7 +560,18 @@ def load_landscape_data(
         else:
             labels_anchors = ["Start", 'A', 'B', 'C', 'D', 'E']
             gt_idx = labels_anchors.index(answer_gt_short)
-            
+        
+        # Skip the broken distance matrix
+        expected_dims = {
+            "commonsenseqa": 6,
+            "aqua": 6,
+            "mmlu": 5,
+            "strategyqa": 3,
+            "dummy": 6
+        }
+        if distance_matrix.shape[1] != expected_dims.get(dataset):
+            continue
+
         # Normalize the distance matrix
         distance_matrix = distance_matrix[:num_all_thoughts+1, 1:] # get T matrix and the first row of the A matrix
         distance_matrix = distance_matrix / np.linalg.norm(distance_matrix, axis=1, ord=1, keepdims=True) # normalize the D (T, Y)
@@ -576,7 +591,7 @@ def load_landscape_data(
         distance_matrices.append(distance_matrix)
         num_all_thoughts_w_start_list.append(num_all_thoughts+1)  # add one row from A matrix
     
-    if not distance_matrices:
+    if len(distance_matrices) == 0:
         raise ValueError(f"No data found for {model} {method} {dataset}")
     
     # Concatenate all distance matrices

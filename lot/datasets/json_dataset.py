@@ -22,7 +22,6 @@ class JsonDataset(BaseDataset):
         explanation_field: Optional[str] = None,
         is_jsonl: bool = True,
         options_format: Optional[Callable] = None,
-        answer_format: Optional[Callable] = None,
         dataset_name: Optional[str] = None
     ):
         """
@@ -57,7 +56,6 @@ class JsonDataset(BaseDataset):
         self.explanation_field = explanation_field
         self.is_jsonl = is_jsonl
         self.options_format = options_format
-        self.answer_format = answer_format
         
         # Prompt information (will be set by dataset_loader)
         self.prompts = {}
@@ -101,7 +99,6 @@ class JsonDataset(BaseDataset):
             print(f"Warning: Item missing answer field: {item}")
             return None
         
-        formatted_answer = format_answer(answer, self.answer_format)
         
         # Get explanation (if any)
         explanation = None
@@ -112,7 +109,7 @@ class JsonDataset(BaseDataset):
         processed_item = {
             "question": question,
             "options": options,
-            "answer": formatted_answer,
+            "answer": answer,
         }
         
         if explanation:

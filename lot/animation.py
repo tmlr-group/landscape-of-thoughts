@@ -1,31 +1,27 @@
 import numpy as np
 import plotly.graph_objects as go
+import plotly.express as px
 from typing import Dict, List, Any
-
+from plotly.subplots import make_subplots
 from .visualization_utils.utils import process_chain_points, split_list
 from .visualization_utils.landscape import process_landscape_data
 import plotly.io as pio
 import os
 from fire import Fire
 
-def create_animations(
-    dataset_name: str, 
+
+def get_points_wrong_and_correct_chains(
     plot_datas: Dict[int, Dict[str, Any]], 
     splited_T_2D: List[np.ndarray], 
-    A_matrix_2D: np.ndarray, 
     num_all_thoughts_w_start_list: List[int],
-    num_frames: int = 5
 ) -> tuple:
     """
     Create two separate animated landscape visualizations (correct and wrong chains).
     
     Args:
-        dataset_name (str): Name of the dataset.
         plot_datas (Dict[int, Dict[str, Any]]): Data for plotting.
         splited_T_2D (List[np.ndarray]): Split T matrix in 2D.
-        A_matrix_2D (np.ndarray): A matrix in 2D.
         num_all_thoughts_w_start_list (List[int]): List of number of thoughts with start.
-        num_frames (int, optional): Number of frames to display. Defaults to 5.
         
     Returns:
         tuple: Two Plotly figure objects (wrong_fig, correct_fig).
@@ -72,640 +68,446 @@ def create_animations(
                 wrong_chain_points.append(chain_data)
 
     # Process both chains
-    wrong_x, wrong_y, wrong_weights, _, _ = process_chain_points(wrong_chain_points)
-    correct_x, correct_y, correct_weights, _, _ = process_chain_points(correct_chain_points)
+    wrong_x, wrong_y, _, _, _ = process_chain_points(wrong_chain_points)
+    correct_x, correct_y, _, _, _ = process_chain_points(correct_chain_points)
 
-    # Calculate thresholds for both sets
-    percentiles = [100 * (i+1) / num_frames for i in range(num_frames-1)]
-    wrong_thresholds = np.percentile(wrong_weights, percentiles) if len(wrong_weights) > 0 else np.array([0.2, 0.4, 0.6, 0.8])[:num_frames-1]
-    
-    if len(correct_weights) > 0:
-        correct_thresholds = np.percentile(correct_weights, percentiles)
-    else:
-        print("Warning: No correct answers found. Using default thresholds for correct answers.")
-        correct_thresholds = np.array([0.2, 0.4, 0.6, 0.8])[:num_frames-1]
-        correct_x = np.array([])
-        correct_y = np.array([])
+    return wrong_x, wrong_y, correct_x, correct_y
 
-    # Get anchor labels based on dataset
-    if dataset_name == "mmlu":
-        labels_anchors = ['A', 'B', 'C', 'D']
-    elif dataset_name == "strategyqa":
-        labels_anchors = ['A', 'B']
-    else:
-        labels_anchors = ['A', 'B', 'C', 'D', 'E']
 
-    # Generate frame labels
-    percentile_ranges = np.linspace(0, 100, num_frames+1).astype(int)
-    frame_labels = [f'{percentile_ranges[i]}-{percentile_ranges[i+1]}%' for i in range(num_frames)]
 
-    # Process data into segments for animation frames
-    wrong_segments = []
-    correct_segments = []
-    
-    # Generate blended segments for smoother transitions
-    num_blend_frames = 5  # Number of intermediate frames for smooth transition
-    
-    # Create more fine-grained thresholds for smoother transitions
-    total_blend_frames = num_frames * num_blend_frames
-    blend_percentiles = [100 * (i+1) / total_blend_frames for i in range(total_blend_frames-1)]
-    
-    # Calculate fine-grained thresholds
-    if len(wrong_weights) > 0:
-        wrong_blend_thresholds = np.percentile(wrong_weights, blend_percentiles)
-    else:
-        wrong_blend_thresholds = np.linspace(0.2, 0.8, total_blend_frames-1)
+class PlotlySlidingContourVisualizer:
+    def __init__(self, x_data, y_data, window_size=100, step_size=10, color_theme='blue', 
+                 fixed_points_matrix=None, point_symbols=None, point_colors=None, 
+                 plot_width=900, plot_height=700):
+        """
+        Initialize the Plotly sliding window contour visualizer.
         
-    if len(correct_weights) > 0:
-        correct_blend_thresholds = np.percentile(correct_weights, blend_percentiles)
-    else:
-        correct_blend_thresholds = np.linspace(0.2, 0.8, total_blend_frames-1)
-    
-    # Generate segments for wrong chains
-    for i in range(total_blend_frames):
-        if i == 0:
-            # First segment
-            wrong_mask = wrong_weights <= wrong_blend_thresholds[0] if len(wrong_weights) > 0 else np.array([], dtype=bool)
-        elif i == total_blend_frames-1:
-            # Last segment
-            wrong_mask = wrong_weights > wrong_blend_thresholds[-1] if len(wrong_weights) > 0 else np.array([], dtype=bool)
-        else:
-            # Middle segments
-            if len(wrong_weights) > 0:
-                wrong_mask = (wrong_weights > wrong_blend_thresholds[i-1]) & (wrong_weights <= wrong_blend_thresholds[i])
-            else:
-                wrong_mask = np.array([], dtype=bool)
+        Parameters:
+        -----------
+        x_data, y_data : array-like
+            Lists or arrays of x and y coordinates.
+        window_size : int
+            Number of points to include in each window.
+        step_size : int
+            Number of points to advance the window in each frame.
+        color_theme : str
+            Color theme for the contour plot. Options: 'blue', 'red', 'green', 'viridis'
+        fixed_points_matrix : ndarray, optional
+            2D matrix where each row contains [x, y] coordinates of a fixed point (like A_matrix_2D)
+        point_symbols : list, optional
+            List of symbols for each point in fixed_points_matrix
+        point_colors : list, optional
+            List of colors for each point in fixed_points_matrix
+        plot_width : int
+            Width of the plot in pixels
+        plot_height : int
+            Height of the plot in pixels
+        """
+        self.x_data = np.array(x_data)
+        self.y_data = np.array(y_data)
+        self.window_size = min(window_size, len(x_data))
+        self.step_size = step_size
+        self.color_theme = color_theme
+        self.fixed_points_matrix = fixed_points_matrix
+        self.plot_width = plot_width
+        self.plot_height = plot_height
         
-        # Get segments
-        if len(wrong_weights) > 0:
-            wrong_x_segment = np.array(wrong_x)[wrong_mask]
-            wrong_y_segment = np.array(wrong_y)[wrong_mask]
-        else:
-            wrong_x_segment = np.array([])
-            wrong_y_segment = np.array([])
+        # Default symbols and colors for matrix points if not provided
+        self.point_symbols = point_symbols if point_symbols is not None else ['circle'] * (len(fixed_points_matrix) if fixed_points_matrix is not None else 0)
+        self.point_colors = point_colors if point_colors is not None else ['black'] * (len(fixed_points_matrix) if fixed_points_matrix is not None else 0)
+        
+        
+        # Set colorscale based on color_theme
+        if color_theme == 'blue':
+            color_list = px.colors.sequential.Blues
+            self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, color_list[1]], 
+                    [0.5, color_list[3]], [1, color_list[5]]]
+            self.scatter_color = color_list[5]  # Use a darker blue for scatter points
+        elif color_theme == 'red':
+            # Override the first color to be transparent white for lowest density
+            color_list = px.colors.sequential.Reds
+            self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, color_list[1]], 
+                                [0.5, color_list[3]], [1, color_list[5]]]
+            self.scatter_color = color_list[5]  # Use a darker red for scatter points
+        elif color_theme == 'green':
+            color_list = px.colors.sequential.Greens
+            self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, color_list[1]], 
+                                [0.5, color_list[3]], [1, color_list[5]]]
+            self.scatter_color = color_list[5]  # Use a darker green for scatter points
+        else:  # default to viridis
+            self.colorscale = [[0, 'rgba(255,255,255,0)'], [0.1, 'rgba(68,1,84,0.3)'], 
+                              [0.5, 'rgba(65,182,196,0.5)'], [1, 'rgba(253,231,37,0.8)']]
+            self.scatter_color = 'rgba(68,1,84,0.8)'  # Use a dark purple for scatter points
+        
+        # Calculate the number of frames
+        self.n_frames = max(1, (len(self.x_data) - self.window_size) // self.step_size + 1)
+        
+        # Create a figure
+        self.fig = make_subplots(rows=1, cols=1)
+        
+        # Get data range for consistent axes - include both data and fixed points
+        self._compute_axis_ranges()
+        
+        # Create frames for the animation
+        self.frames = self._create_frames()
+
+    def _compute_axis_ranges(self):
+        """Compute axis ranges to include all data points and fixed points."""
+        # Start with data ranges
+        x_points = self.x_data
+        y_points = self.y_data
+        
+        # Include fixed points in the range computation
+        if self.fixed_points_matrix is not None and len(self.fixed_points_matrix) > 0:
+            x_fixed = self.fixed_points_matrix[:, 0]
+            y_fixed = self.fixed_points_matrix[:, 1]
+            x_points = np.concatenate([x_points, x_fixed])
+            y_points = np.concatenate([y_points, y_fixed])
+        
+        # Compute min/max with padding
+        self.x_min, self.x_max = np.min(x_points), np.max(x_points)
+        self.y_min, self.y_max = np.min(y_points), np.max(y_points)
+        
+        # Add padding (10% on each side)
+        x_pad = 0.1 * (self.x_max - self.x_min)
+        y_pad = 0.1 * (self.y_max - self.y_min)
+        
+        self.x_range = [self.x_min - x_pad, self.x_max + x_pad]
+        self.y_range = [self.y_min - y_pad, self.y_max + y_pad]
+        
+        # Store the range info for potential normalization
+        self.x_scale = self.x_max - self.x_min
+        self.y_scale = self.y_max - self.y_min
+
+    
+    def _create_fixed_point_traces(self):
+        """Create trace objects for fixed points to display in each frame."""
+        fixed_point_traces = []
+        
+        # Process matrix-based fixed points (like A_matrix_2D)
+        if self.fixed_points_matrix is not None:
+            for idx, point in enumerate(self.fixed_points_matrix):
+                # Get symbol and color (with defaults)
+                symbol = self.point_symbols[idx] if idx < len(self.point_symbols) else 'circle'
+                color = self.point_colors[idx] if idx < len(self.point_colors) else 'black'
+                
+                # Ensure point coordinates are within the same scale as the data points
+                x_coord = point[0]
+                y_coord = point[1]
+                
+                # Verify the point is within the computed range (or close to it)
+                if x_coord < self.x_range[0] or x_coord > self.x_range[1] or \
+                   y_coord < self.y_range[0] or y_coord > self.y_range[1]:
+                    # Log a warning if point is significantly outside the range
+                    print(f"Warning: Fixed point ({x_coord}, {y_coord}) may be outside the expected range.")
+                
+                trace = go.Scatter(
+                    x=[x_coord],
+                    y=[y_coord],
+                    mode='markers',
+                    marker=dict(
+                        symbol=symbol,
+                        size=18,
+                        line_width=0.5,
+                        color=color,
+                        opacity=0.8,  # transparency
+                    ),
+                    showlegend=False,
+                    hoverinfo='none'
+                )
+                
+                fixed_point_traces.append(trace)
             
-        # Store segments
-        wrong_segments.append((wrong_x_segment, wrong_y_segment))
+        return fixed_point_traces
     
-    # Generate segments for correct chains
-    for i in range(total_blend_frames):
-        if i == 0:
-            # First segment
-            correct_mask = correct_weights <= correct_blend_thresholds[0] if len(correct_weights) > 0 else np.array([], dtype=bool)
-        elif i == total_blend_frames-1:
-            # Last segment
-            correct_mask = correct_weights > correct_blend_thresholds[-1] if len(correct_weights) > 0 else np.array([], dtype=bool)
-        else:
-            # Middle segments
-            if len(correct_weights) > 0:
-                correct_mask = (correct_weights > correct_blend_thresholds[i-1]) & (correct_weights <= correct_blend_thresholds[i])
-            else:
-                correct_mask = np.array([], dtype=bool)
+    def _create_frames(self):
+        """Create all the frames for the animation."""
+        frames = []
         
-        # Get segments
-        if len(correct_weights) > 0:
-            correct_x_segment = np.array(correct_x)[correct_mask]
-            correct_y_segment = np.array(correct_y)[correct_mask]
-        else:
-            correct_x_segment = np.array([])
-            correct_y_segment = np.array([])
+        # Create fixed point traces once for all frames
+        fixed_point_traces = self._create_fixed_point_traces()
+        
+        for frame_idx in range(self.n_frames):
+            # Get window data
+            start_idx = frame_idx * self.step_size
+            end_idx = min(start_idx + self.window_size, len(self.x_data))
             
-        # Store segments
-        correct_segments.append((correct_x_segment, correct_y_segment))
+            x_window = self.x_data[start_idx:end_idx]
+            y_window = self.y_data[start_idx:end_idx]
+
+            # Calculate left and right edges as percentages (0-100%)
+            left_percent = (start_idx / len(self.x_data)) * 100
+            right_percent = (end_idx / len(self.x_data)) * 100
+            # Calculate center position percentage
+            center_percent = (left_percent + right_percent) / 2
+            
+            # Start with base traces - use the same trace indices as the initial figure
+            frame_traces = [
+                # Scatter plot - use uid=0 to match the initial trace
+                go.Scatter(
+                    x=x_window, 
+                    y=y_window, 
+                    mode='markers',
+                    marker=dict(size=4, opacity=0.5, color=self.scatter_color),
+                    showlegend=False,
+                    hoverinfo='none',
+                    uid='scatter-points'  # Consistent ID for animation transitions
+                ),
+            ]
+            
+            # Add fixed point traces to each frame with consistent IDs
+            for i, trace in enumerate(fixed_point_traces):
+                # Clone trace with a consistent ID
+                fixed_trace = go.Scatter(
+                    x=trace.x,
+                    y=trace.y,
+                    mode=trace.mode,
+                    marker=trace.marker,
+                    showlegend=trace.showlegend,
+                    hoverinfo=trace.hoverinfo,
+                    uid=f'fixed-point-{i}'  # Consistent ID for each fixed point
+                )
+                frame_traces.append(fixed_trace)
+            
+            # Create a frame with all traces, ensuring consistent axis ranges
+            frame = go.Frame(
+                data=frame_traces,
+                name=str(frame_idx),
+                layout=go.Layout(
+                    xaxis=dict(
+                        range=self.x_range,
+                        showgrid=True,
+                        gridcolor='rgba(200,200,200,0.2)',
+                        gridwidth=1
+                    ),
+                    yaxis=dict(
+                        range=self.y_range,
+                        showgrid=True,
+                        gridcolor='rgba(200,200,200,0.2)',
+                        gridwidth=1
+                    ),
+                    annotations=[
+                        dict(
+                            text=f"Progress: {center_percent:.1f}%",
+                            x=0.02,  # Position at the left side
+                            y=0.98,  # Position at the top
+                            xref="paper",
+                            yref="paper",
+                            showarrow=False,
+                            font=dict(
+                                family="Arial",
+                                size=14,
+                                color=self.scatter_color
+                            ),
+                            bgcolor="rgba(255, 255, 255, 0.7)",
+                            bordercolor="rgba(0, 0, 0, 0.2)",
+                            borderwidth=1,
+                            borderpad=4,
+                            align="left"
+                        )
+                    ]
+                )
+            )
+            frames.append(frame)
+            
+        return frames
     
-    # Create WRONG chains animation
-    #################################
-    wrong_fig_dict = {
-        "data": [],
-        "layout": {},
-        "frames": []
-    }
-    
-    # Setup wrong layout
-    wrong_fig_dict["layout"] = {
-        "title": f"Wrong Chains Landscape ({dataset_name.upper()})",
-        "width": 800,
-        "height": 600,
-        "hovermode": "closest",
-        "xaxis": {"title": "Dimension 1"},
-        "yaxis": {"title": "Dimension 2"},
-        "plot_bgcolor": "white",
-        "paper_bgcolor": "white",
-        "updatemenus": [{
-            "buttons": [
+    def visualize(self, play_interval=500):
+        """
+        Create the interactive sliding window contour visualization.
+        
+        Parameters:
+        -----------
+        play_interval : int
+            Delay between frames in milliseconds.
+        
+        Returns:
+        --------
+        fig : plotly.graph_objects.Figure
+            The plotly figure object.
+        """
+        # Get first frame data for initial display
+        start_idx = 0
+        end_idx = min(self.window_size, len(self.x_data))
+        x_window = self.x_data[start_idx:end_idx]
+        y_window = self.y_data[start_idx:end_idx]
+        
+        # Calculate initial center_percent
+        left_percent = (start_idx / len(self.x_data)) * 100
+        right_percent = (end_idx / len(self.x_data)) * 100
+        center_percent = (left_percent + right_percent) / 2
+        
+        # Initialize with the first frame data
+        self.fig.add_trace(
+            go.Scatter(
+                x=x_window, 
+                y=y_window, 
+                mode='markers',
+                marker=dict(size=4, opacity=0.5, color=self.scatter_color),
+                showlegend=False,
+                hoverinfo='none',
+                uid='scatter-points'  # Consistent ID to match frames
+            )
+        )
+        
+        # Add fixed points to the initial display
+        for i, trace in enumerate(self._create_fixed_point_traces()):
+            # Add the trace with a consistent UID that will match frames
+            fixed_trace = go.Scatter(
+                x=trace.x,
+                y=trace.y,
+                mode=trace.mode,
+                marker=trace.marker,
+                showlegend=trace.showlegend,
+                hoverinfo=trace.hoverinfo,
+                uid=f'fixed-point-{i}'  # Consistent ID to match frames
+            )
+            self.fig.add_trace(fixed_trace)
+        
+        # Update layout
+        self.fig.update_layout(
+            width=self.plot_width,
+            height=self.plot_height,
+            margin=dict(l=0, r=0, t=0, b=0, pad=0),  # Remove margins for larger plot area
+            xaxis=dict(
+                range=self.x_range, 
+                showticklabels=False,  # Hide tick labels
+                showgrid=True,        # Show grid
+                gridcolor='rgba(200,200,200,0.2)',  # Light gray grid
+                gridwidth=1,
+                zeroline=False,        # Hide zero line
+                showline=False,        # Hide axis line
+                autorange=False,       # Disable autorange to keep consistent scale
+                constrain="domain"     # Keep aspect ratio consistent
+            ),
+            yaxis=dict(
+                range=self.y_range, 
+                showticklabels=False,  # Hide tick labels
+                showgrid=True,        # Show grid
+                gridcolor='rgba(200,200,200,0.2)',  # Light gray grid
+                gridwidth=1,
+                zeroline=False,        # Hide zero line
+                showline=False,        # Hide axis line
+                autorange=False,       # Disable autorange to keep consistent scale
+                scaleanchor="x",       # Scale y-axis to match x-axis scale
+                scaleratio=1           # Use 1:1 aspect ratio
+            ),
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            showlegend=False,          # Hide legend
+            updatemenus=[
                 {
-                    "args": [None, {"frame": {"duration": 300, "redraw": True},
-                                   "fromcurrent": True, "transition": {"duration": 150,
-                                                                     "easing": "cubic-in-out"}}],
-                    "label": "Play",
-                    "method": "animate"
-                },
-                {
-                    "args": [[None], {"frame": {"duration": 0, "redraw": True},
-                                     "mode": "immediate",
-                                     "transition": {"duration": 0}}],
-                    "label": "Pause",
-                    "method": "animate"
+                    'type': 'buttons',
+                    'showactive': False,
+                    'buttons': [
+                        {
+                            'label': '▶️ Play',
+                            'method': 'animate',
+                            'args': [
+                                None, 
+                                {
+                                    'frame': {'duration': play_interval, 'redraw': False},
+                                    'fromcurrent': True,
+                                    'transition': {'duration': 300, 'easing': 'cubic-in-out'}
+                                }
+                            ]
+                        },
+                        {
+                            'label': '⏸️ Pause',
+                            'method': 'animate',
+                            'args': [
+                                [None], 
+                                {
+                                    'frame': {'duration': 0, 'redraw': False},
+                                    'mode': 'immediate',
+                                    'transition': {'duration': 0}
+                                }
+                            ]
+                        },
+                        {
+                            'label': '🔄 Reset',
+                            'method': 'relayout',
+                            'args': [
+                                {
+                                    'xaxis.range': self.x_range,
+                                    'yaxis.range': self.y_range
+                                }
+                            ]
+                        }
+                    ],
+                    'x': 0.1,
+                    'y': 0,
+                    'xanchor': 'right',
+                    'yanchor': 'top',
+                    'pad': {'r': 10, 't': 10},
+                    'bgcolor': 'rgba(255, 255, 255, 0.7)',
+                    'bordercolor': 'rgba(0, 0, 0, 0.2)',
+                    'borderwidth': 1
                 }
             ],
-            "direction": "left",
-            "pad": {"r": 10, "t": 10},
-            "showactive": False,
-            "type": "buttons",
-            "x": 0.1,
-            "xanchor": "right",
-            "y": 0,
-            "yanchor": "top"
-        }]
-    }
-    
-    # Create sliders for wrong animation
-    wrong_sliders_dict = {
-        "active": 0,
-        "yanchor": "top",
-        "xanchor": "left",
-        "currentvalue": {
-            "font": {"size": 16},
-            "prefix": "Percentile Range: ",
-            "visible": True,
-            "xanchor": "right"
-        },
-        "transition": {"duration": 150, "easing": "cubic-in-out"},
-        "pad": {"b": 10, "t": 50},
-        "len": 0.9,
-        "x": 0.1,
-        "y": 0,
-        "steps": []
-    }
-    
-    # Add initial traces (first frame data)
-    wrong_x_segment, wrong_y_segment = wrong_segments[0]
-    
-    # Add base traces for wrong chains
-    if len(wrong_x_segment) > 0:
-        wrong_fig_dict["data"].append({
-            "type": "histogram2dcontour",
-            "x": wrong_x_segment,
-            "y": wrong_y_segment,
-            "colorscale": "Reds",
-            "showscale": True,
-            "colorbar": {"title": "Density"},
-            "histfunc": "count",
-            "contours": {
-                "showlines": True,
-                "coloring": "fill"
-            },
-            "autocontour": True,
-            "opacity": 0.7,
-            "name": "Wrong Chains"
-        })
-    else:
-        # Add an empty trace
-        wrong_fig_dict["data"].append({
-            "type": "scatter",
-            "x": [],
-            "y": [],
-            "mode": "markers",
-            "showlegend": False,
-            "name": "Wrong Chains"
-        })
-    
-    # Add anchors to wrong animation
-    for idx, anchor_name in enumerate(labels_anchors):
-        marker_symbol = 'star' if idx == 0 else 'x'  # First anchor is correct
-        marker_color = "green" if idx == 0 else "red"
-        
-        wrong_fig_dict["data"].append({
-            "type": "scatter",
-            "x": [A_matrix_2D[idx, 0]],
-            "y": [A_matrix_2D[idx, 1]],
-            "mode": "markers+text",
-            "text": anchor_name,
-            "textposition": "top center",
-            "marker": {
-                "symbol": marker_symbol,
-                "size": 18,
-                "line": {"width": 1},
-                "color": marker_color,
-                "opacity": 0.9,
-            },
-            "name": f"{anchor_name} ({('Correct' if idx == 0 else 'Wrong')})"
-        })
-    
-    # Create frames for wrong animation
-    for i in range(0, total_blend_frames, num_blend_frames):
-        frame_index = i // num_blend_frames
-        frame = {"data": [], "name": frame_labels[frame_index]}
-        wrong_x_segment, wrong_y_segment = wrong_segments[i]
-        
-        # Add wrong chains
-        if len(wrong_x_segment) > 0:
-            frame["data"].append({
-                "type": "histogram2dcontour",
-                "x": wrong_x_segment,
-                "y": wrong_y_segment,
-                "colorscale": "Reds",
-                "showscale": True,
-                "colorbar": {"title": "Density"},
-                "histfunc": "count",
-                "contours": {
-                    "showlines": True,
-                    "coloring": "fill"
-                },
-                "autocontour": True,
-                "opacity": 0.7,
-                "name": "Wrong Chains"
-            })
-        else:
-            # Add an empty trace
-            frame["data"].append({
-                "type": "scatter",
-                "x": [],
-                "y": [],
-                "mode": "markers",
-                "showlegend": False,
-                "name": "Wrong Chains"
-            })
-        
-        # Add anchors to each frame
-        for idx, anchor_name in enumerate(labels_anchors):
-            marker_symbol = 'star' if idx == 0 else 'x'  # First anchor is correct
-            marker_color = "green" if idx == 0 else "red"
-            
-            frame["data"].append({
-                "type": "scatter",
-                "x": [A_matrix_2D[idx, 0]],
-                "y": [A_matrix_2D[idx, 1]],
-                "mode": "markers+text",
-                "text": anchor_name,
-                "textposition": "top center",
-                "marker": {
-                    "symbol": marker_symbol,
-                    "size": 18,
-                    "line": {"width": 1},
-                    "color": marker_color,
-                    "opacity": 0.9,
-                },
-                "showlegend": False,
-                "name": f"{anchor_name} ({('Correct' if idx == 0 else 'Wrong')})"
-            })
-        
-        wrong_fig_dict["frames"].append(frame)
-        
-        # Add slider steps for main frames
-        slider_step = {
-            "args": [
-                [frame_labels[frame_index]],
-                {"frame": {"duration": 300, "redraw": True},
-                "mode": "immediate",
-                "transition": {"duration": 150}}
-            ],
-            "label": frame_labels[frame_index],
-            "method": "animate"
-        }
-        wrong_sliders_dict["steps"].append(slider_step)
-    
-        # Add blend frames for smooth transition
-        if frame_index < num_frames - 1:
-            for blend_i in range(1, num_blend_frames):
-                blend_idx = i + blend_i
-                blend_frame = {"data": [], "name": f"blend_{frame_index}_{blend_i}"}
-                blend_x_segment, blend_y_segment = wrong_segments[blend_idx]
-                
-                # Add wrong chains for blend frame
-                if len(blend_x_segment) > 0:
-                    blend_frame["data"].append({
-                        "type": "histogram2dcontour",
-                        "x": blend_x_segment,
-                        "y": blend_y_segment,
-                        "colorscale": "Reds",
-                        "showscale": True,
-                        "colorbar": {"title": "Density"},
-                        "histfunc": "count",
-                        "contours": {
-                            "showlines": True,
-                            "coloring": "fill"
-                        },
-                        "autocontour": True,
-                        "opacity": 0.7,
-                        "name": "Wrong Chains"
-                    })
-                else:
-                    # Add an empty trace
-                    blend_frame["data"].append({
-                        "type": "scatter",
-                        "x": [],
-                        "y": [],
-                        "mode": "markers",
-                        "showlegend": False,
-                        "name": "Wrong Chains"
-                    })
-                
-                # Add anchors to blend frame
-                for idx, anchor_name in enumerate(labels_anchors):
-                    marker_symbol = 'star' if idx == 0 else 'x'  # First anchor is correct
-                    marker_color = "green" if idx == 0 else "red"
-                    
-                    blend_frame["data"].append({
-                        "type": "scatter",
-                        "x": [A_matrix_2D[idx, 0]],
-                        "y": [A_matrix_2D[idx, 1]],
-                        "mode": "markers+text",
-                        "text": anchor_name,
-                        "textposition": "top center",
-                        "marker": {
-                            "symbol": marker_symbol,
-                            "size": 18,
-                            "line": {"width": 1},
-                            "color": marker_color,
-                            "opacity": 0.9,
-                        },
-                        "showlegend": False,
-                        "name": f"{anchor_name} ({('Correct' if idx == 0 else 'Wrong')})"
-                    })
-                
-                wrong_fig_dict["frames"].append(blend_frame)
-    
-    # Add slider to layout
-    wrong_fig_dict["layout"]["sliders"] = [wrong_sliders_dict]
-    
-    # Create the wrong figure
-    wrong_fig = go.Figure(wrong_fig_dict)
-    
-    # Create CORRECT chains animation
-    ###################################
-    correct_fig_dict = {
-        "data": [],
-        "layout": {},
-        "frames": []
-    }
-    
-    # Setup correct layout
-    correct_fig_dict["layout"] = {
-        "title": f"Correct Chains Landscape ({dataset_name.upper()})",
-        "width": 800,
-        "height": 600,
-        "hovermode": "closest",
-        "xaxis": {"title": "Dimension 1"},
-        "yaxis": {"title": "Dimension 2"},
-        "plot_bgcolor": "white",
-        "paper_bgcolor": "white",
-        "updatemenus": [{
-            "buttons": [
+            sliders=[
                 {
-                    "args": [None, {"frame": {"duration": 300, "redraw": True},
-                                   "fromcurrent": True, "transition": {"duration": 150,
-                                                                     "easing": "cubic-in-out"}}],
-                    "label": "Play",
-                    "method": "animate"
-                },
-                {
-                    "args": [[None], {"frame": {"duration": 0, "redraw": True},
-                                     "mode": "immediate",
-                                     "transition": {"duration": 0}}],
-                    "label": "Pause",
-                    "method": "animate"
+                    'active': 0,
+                    'yanchor': 'top',
+                    'xanchor': 'left',
+                    'currentvalue': {
+                        'visible': False  # Hide current frame indicator
+                    },
+                    'transition': {'duration': 300, 'easing': 'cubic-in-out'},
+                    'pad': {'b': 0, 't': 0},
+                    'len': 0.9,
+                    'x': 0.1,
+                    'y': 0,
+                    'steps': [
+                        {
+                            'args': [
+                                [frame.name],
+                                {
+                                    'frame': {'duration': play_interval, 'redraw': False},
+                                    'mode': 'immediate',
+                                    'transition': {'duration': 300, 'easing': 'cubic-in-out'}
+                                }
+                            ],
+                            'label': str(i+1),
+                            'method': 'animate'
+                        }
+                        for i, frame in enumerate(self.frames)
+                    ]
                 }
-            ],
-            "direction": "left",
-            "pad": {"r": 10, "t": 10},
-            "showactive": False,
-            "type": "buttons",
-            "x": 0.1,
-            "xanchor": "right",
-            "y": 0,
-            "yanchor": "top"
-        }]
-    }
-    
-    # Create sliders for correct animation
-    correct_sliders_dict = {
-        "active": 0,
-        "yanchor": "top",
-        "xanchor": "left",
-        "currentvalue": {
-            "font": {"size": 16},
-            "prefix": "Percentile Range: ",
-            "visible": True,
-            "xanchor": "right"
-        },
-        "transition": {"duration": 150, "easing": "cubic-in-out"},
-        "pad": {"b": 10, "t": 50},
-        "len": 0.9,
-        "x": 0.1,
-        "y": 0,
-        "steps": []
-    }
-    
-    # Add initial traces (first frame data)
-    correct_x_segment, correct_y_segment = correct_segments[0]
-    
-    # Add base traces for correct chains
-    if len(correct_x_segment) > 0:
-        correct_fig_dict["data"].append({
-            "type": "histogram2dcontour",
-            "x": correct_x_segment,
-            "y": correct_y_segment,
-            "colorscale": "Blues",
-            "showscale": True,
-            "colorbar": {"title": "Density"},
-            "histfunc": "count",
-            "contours": {
-                "showlines": True,
-                "coloring": "fill"
-            },
-            "autocontour": True,
-            "opacity": 0.7,
-            "name": "Correct Chains"
-        })
-    else:
-        # Add an empty trace
-        correct_fig_dict["data"].append({
-            "type": "scatter",
-            "x": [],
-            "y": [],
-            "mode": "markers",
-            "showlegend": False,
-            "name": "Correct Chains"
-        })
-    
-    # Add anchors to correct animation
-    for idx, anchor_name in enumerate(labels_anchors):
-        marker_symbol = 'star' if idx == 0 else 'x'  # First anchor is correct
-        marker_color = "green" if idx == 0 else "red"
+            ]
+        )
         
-        correct_fig_dict["data"].append({
-            "type": "scatter",
-            "x": [A_matrix_2D[idx, 0]],
-            "y": [A_matrix_2D[idx, 1]],
-            "mode": "markers+text",
-            "text": anchor_name,
-            "textposition": "top center",
-            "marker": {
-                "symbol": marker_symbol,
-                "size": 18,
-                "line": {"width": 1},
-                "color": marker_color,
-                "opacity": 0.9,
-            },
-            "name": f"{anchor_name} ({('Correct' if idx == 0 else 'Wrong')})"
-        })
-    
-    # Create frames for correct animation with blending
-    for i in range(0, total_blend_frames, num_blend_frames):
-        frame_index = i // num_blend_frames
-        frame = {"data": [], "name": frame_labels[frame_index]}
-        correct_x_segment, correct_y_segment = correct_segments[i]
+        # Configure scene
+        self.fig.update_layout(
+            uirevision='true',  # Maintain user interaction states
+            hovermode=False     # Disable hover interactions
+        )
         
-        # Add correct chains
-        if len(correct_x_segment) > 0:
-            frame["data"].append({
-                "type": "histogram2dcontour",
-                "x": correct_x_segment,
-                "y": correct_y_segment,
-                "colorscale": "Blues",
-                "showscale": True,
-                "colorbar": {"title": "Density"},
-                "histfunc": "count",
-                "contours": {
-                    "showlines": True,
-                    "coloring": "fill"
-                },
-                "autocontour": True,
-                "opacity": 0.7,
-                "name": "Correct Chains"
-            })
-        else:
-            # Add an empty trace
-            frame["data"].append({
-                "type": "scatter",
-                "x": [],
-                "y": [],
-                "mode": "markers",
-                "showlegend": False,
-                "name": "Correct Chains"
-            })
+        # Add frames to the figure
+        self.fig.frames = self.frames
         
-        # Add anchors to each frame
-        for idx, anchor_name in enumerate(labels_anchors):
-            marker_symbol = 'star' if idx == 0 else 'x'  # First anchor is correct
-            marker_color = "green" if idx == 0 else "red"
-            
-            frame["data"].append({
-                "type": "scatter",
-                "x": [A_matrix_2D[idx, 0]],
-                "y": [A_matrix_2D[idx, 1]],
-                "mode": "markers+text",
-                "text": anchor_name,
-                "textposition": "top center",
-                "marker": {
-                    "symbol": marker_symbol,
-                    "size": 18,
-                    "line": {"width": 1},
-                    "color": marker_color,
-                    "opacity": 0.9,
-                },
-                "showlegend": False,
-                "name": f"{anchor_name} ({('Correct' if idx == 0 else 'Wrong')})"
-            })
-        
-        correct_fig_dict["frames"].append(frame)
-        
-        # Add slider steps for main frames
-        slider_step = {
-            "args": [
-                [frame_labels[frame_index]],
-                {"frame": {"duration": 300, "redraw": True},
-                "mode": "immediate",
-                "transition": {"duration": 150}}
-            ],
-            "label": frame_labels[frame_index],
-            "method": "animate"
-        }
-        correct_sliders_dict["steps"].append(slider_step)
-        
-        # Add blend frames for smooth transition
-        if frame_index < num_frames - 1:
-            for blend_i in range(1, num_blend_frames):
-                blend_idx = i + blend_i
-                blend_frame = {"data": [], "name": f"blend_{frame_index}_{blend_i}"}
-                blend_x_segment, blend_y_segment = correct_segments[blend_idx]
-                
-                # Add correct chains for blend frame
-                if len(blend_x_segment) > 0:
-                    blend_frame["data"].append({
-                        "type": "histogram2dcontour",
-                        "x": blend_x_segment,
-                        "y": blend_y_segment,
-                        "colorscale": "Blues",
-                        "showscale": True,
-                        "colorbar": {"title": "Density"},
-                        "histfunc": "count",
-                        "contours": {
-                            "showlines": True,
-                            "coloring": "fill"
-                        },
-                        "autocontour": True,
-                        "opacity": 0.7,
-                        "name": "Correct Chains"
-                    })
-                else:
-                    # Add an empty trace
-                    blend_frame["data"].append({
-                        "type": "scatter",
-                        "x": [],
-                        "y": [],
-                        "mode": "markers",
-                        "showlegend": False,
-                        "name": "Correct Chains"
-                    })
-                
-                # Add anchors to blend frame
-                for idx, anchor_name in enumerate(labels_anchors):
-                    marker_symbol = 'star' if idx == 0 else 'x'  # First anchor is correct
-                    marker_color = "green" if idx == 0 else "red"
-                    
-                    blend_frame["data"].append({
-                        "type": "scatter",
-                        "x": [A_matrix_2D[idx, 0]],
-                        "y": [A_matrix_2D[idx, 1]],
-                        "mode": "markers+text",
-                        "text": anchor_name,
-                        "textposition": "top center",
-                        "marker": {
-                            "symbol": marker_symbol,
-                            "size": 18,
-                            "line": {"width": 1},
-                            "color": marker_color,
-                            "opacity": 0.9,
-                        },
-                        "showlegend": False,
-                        "name": f"{anchor_name} ({('Correct' if idx == 0 else 'Wrong')})"
-                    })
-                
-                correct_fig_dict["frames"].append(blend_frame)
-    
-    # Add slider to layout
-    correct_fig_dict["layout"]["sliders"] = [correct_sliders_dict]
-    
-    # Create the correct figure
-    correct_fig = go.Figure(correct_fig_dict)
-    
-    return wrong_fig, correct_fig
+        return self.fig
 
-
-def main(
-    model_name: str = 'Meta-Llama-3.1-8B-Instruct-Turbo',
+def animate_landscape(
+    model_name: str = 'Meta-Llama-3.1-70B-Instruct-Turbo',
     dataset_name: str = 'aqua',
-    method: str = '',
+    method: str = None, # None for all methods
     plot_type: str = 'method',
-    num_frames: int = 10,
+
+    window_size: int = 300, # Number of points in each window
+    step_size: int = 100, # How many points to advance in each frame
+
     save_root: str = "Landscape-Data",
-    output_dir: str = "figures/animation"
-) -> bool:
+    output_dir: str = "figures/animate_landscape",
+    display: bool = False
+):
+
+    # Define point symbols and colors, we define this as the maximum number of answers in the dataset we adopted
+    point_symbols = ['star', 'x', 'x', 'x', 'x']
+    point_colors = ['green', 'red', 'red', 'red', 'red']
+
     # Create methods list
     methods = [method] if method else ['cot', 'l2m', 'mcts', 'tot']
-
     # Process data for landscape visualization
     list_all_T_2D, A_matrix_2D, list_plot_data, list_num_all_thoughts_w_start_list = process_landscape_data(
         model=model_name,
@@ -721,27 +523,62 @@ def main(
     # Generate and save plots
     method_idx = 0
     for plot_datas, splited_T_2D, num_all_thoughts_w_start_list in zip(list_plot_data, list_all_T_2D, list_num_all_thoughts_w_start_list):
-        # Create separate animated figures for wrong and correct chains
-        wrong_fig, correct_fig = create_animations(
-            dataset_name=dataset_name,
+        (
+            wrong_x, wrong_y, correct_x, correct_y
+        ) = get_points_wrong_and_correct_chains(
             plot_datas=plot_datas,
             splited_T_2D=splited_T_2D,
-            A_matrix_2D=A_matrix_2D,
             num_all_thoughts_w_start_list=num_all_thoughts_w_start_list,
-            num_frames=num_frames
         )
-        
-        save_path = os.path.join(output_dir, f"Correct-Animation-{model_name}-{dataset_name}-{methods[method_idx]}.html")
-        print(f"==> Saving correct figure to: {save_path}")
-        pio.write_html(correct_fig, save_path)
-        
-        save_path = os.path.join(output_dir, f"Wrong-Animation-{model_name}-{dataset_name}-{methods[method_idx]}.html")
-        print(f"==> Saving wrong figure to: {save_path}")
-        pio.write_html(wrong_fig, save_path)
-        
-        # Increment method index if not specific method
-        if not method:
-            method_idx += 1
-    
+
+        '''
+            Wrong chains
+        '''
+        # Create the visualizer with matrix-based fixed points
+        visualizer = PlotlySlidingContourVisualizer(
+            x_data=wrong_x, 
+            y_data=wrong_y,
+            window_size=window_size,  # Number of points in each window
+            step_size=step_size,     # How many points to advance in each frame
+            color_theme='red',  # Choose color theme: 'blue', 'red', 'green', or 'viridis'
+            fixed_points_matrix=A_matrix_2D,  # Add fixed points from a matrix
+            point_symbols=point_symbols,
+            point_colors=point_colors,
+            plot_width=900,   # Larger plot width
+            plot_height=700   # Larger plot height
+        )
+
+        # Create and show the figure
+        wrong_fig = visualizer.visualize(play_interval=500)
+        pio.write_html(wrong_fig, file=os.path.join(output_dir, f"{model_name}-{dataset_name}-{methods[method_idx]}-wrong.html"))
+
+        '''
+            Correct chains
+        '''
+        # Create the visualizer with matrix-based fixed points
+        visualizer = PlotlySlidingContourVisualizer(
+            x_data=correct_x, 
+            y_data=correct_y,
+            window_size=window_size,  # Number of points in each window
+            step_size=step_size,     # How many points to advance in each frame
+            color_theme='blue',  # Choose color theme: 'blue', 'red', 'green', or 'viridis'
+            fixed_points_matrix=A_matrix_2D,  # Add fixed points from a matrix
+            point_symbols=point_symbols,
+            point_colors=point_colors,
+            plot_width=900,   # Larger plot width
+            plot_height=700   # Larger plot height
+        )
+
+        # Create and show the figure
+        correct_fig = visualizer.visualize(play_interval=500)
+        pio.write_html(correct_fig, file=os.path.join(output_dir, f"{model_name}-{dataset_name}-{methods[method_idx]}-correct.html"))
+
+        print(f"==> Saved animate landscape in {output_dir}/{model_name}-{dataset_name}-{methods[method_idx]}")
+        method_idx += 1
+
+        if display:
+            wrong_fig.show()
+            correct_fig.show()
+
 if __name__ == "__main__":
-    Fire(main)
+    Fire(animate_landscape)

@@ -1,0 +1,18 @@
+include LICENSE.md
+include README.md
+include requirements.txt
+include pyproject.toml
+
+recursive-include lot *.py
+recursive-include lot *.jsonl
+recursive-include lot/data *.jsonl
+recursive-include doc *.md
+
+prune __pycache__
+prune *.pyc
+prune .git
+prune .cursor
+prune bkp
+prune figures
+prune exp-data
+prune Landscape-Data 
