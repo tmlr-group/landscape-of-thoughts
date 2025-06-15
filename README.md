@@ -26,6 +26,22 @@ Landscape of Thoughts (LoT) is a framework for visualizing and analyzing the rea
 2. Calculate distances between reasoning steps
 3. Visualize the reasoning landscape through dimensional projection
 
+## Use the package via PIP
+
+We provide a pip package for the Landscape of Thoughts framework. You can install it via:
+
+```bash
+pip install landscape-of-thoughts==0.1.0
+```
+
+After setup the model (e.g, Llama-3.2-1B-Instruct), you can use the package as follows:
+
+```bash
+lot --task all --model_name meta-llama/Llama-3.2-1B-Instruct --dataset_name aqua --method cot --num_samples 10 --start_index 0 --end_index 5 --plot_type method --output_dir figures/landscape --local --local_api_key token-abc123
+```
+
+For local installation, you can use the following command:
+
 ## 🐍 Setting up Environment
 
 ```bash
