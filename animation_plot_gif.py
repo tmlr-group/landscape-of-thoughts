@@ -34,10 +34,10 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         Speed factor for the animation
     """
     # Create separate figures for wrong and correct chains
-    fig_wrong = plt.figure(figsize=(10, 8), dpi=100)
+    fig_wrong = plt.figure(figsize=(10, 8), dpi=200)
     ax1 = fig_wrong.add_subplot(111)
     
-    fig_correct = plt.figure(figsize=(10, 8), dpi=100)
+    fig_correct = plt.figure(figsize=(10, 8), dpi=200)
     ax2 = fig_correct.add_subplot(111)
     
     # Set titles
@@ -86,6 +86,39 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
     y = np.linspace(y_min, y_max, 100)
     X, Y = np.meshgrid(x, y)
     grid_points = np.vstack([X.ravel(), Y.ravel()])
+    
+    # Pre-calculate all KDEs for smoother transitions
+    wrong_Z_values = []
+    correct_Z_values = []
+    
+    for i in range(num_splits):
+        # For wrong chains
+        wrong_x_split, wrong_y_split = wrong_segments[i]
+        if len(wrong_x_split) > 2:
+            try:
+                wrong_data = np.vstack([wrong_x_split, wrong_y_split])
+                kde_wrong = gaussian_kde(wrong_data, bw_method='scott')
+                Z_wrong = kde_wrong(grid_points).reshape(X.shape)
+                wrong_Z_values.append(Z_wrong)
+            except Exception as e:
+                print(f"Warning: KDE calculation failed for wrong split {i}: {e}")
+                wrong_Z_values.append(np.zeros_like(X))
+        else:
+            wrong_Z_values.append(np.zeros_like(X))
+
+        # For correct chains
+        correct_x_split, correct_y_split = correct_segments[i]
+        if len(correct_x_split) > 2:
+            try:
+                correct_data = np.vstack([correct_x_split, correct_y_split])
+                kde_correct = gaussian_kde(correct_data, bw_method='scott')
+                Z_correct = kde_correct(grid_points).reshape(X.shape)
+                correct_Z_values.append(Z_correct)
+            except Exception as e:
+                print(f"Warning: KDE calculation failed for correct split {i}: {e}")
+                correct_Z_values.append(np.zeros_like(X))
+        else:
+            correct_Z_values.append(np.zeros_like(X))
     
     # Create separate update functions for wrong and correct chains
     def update_wrong(frame):
@@ -143,22 +176,12 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             # Plot points
             ax1.scatter(wrong_x_partial, wrong_y_partial, c='red', s=10, alpha=0.9)
             
-            # Compute KDE for wrong chains
-            if len(wrong_x_partial) > 2:
-                try:
-                    # Create KDE with adaptive bandwidth
-                    wrong_data = np.vstack([wrong_x_partial, wrong_y_partial])
-                    kde_wrong = gaussian_kde(wrong_data, bw_method='scott')
-                    Z_wrong = kde_wrong(grid_points).reshape(X.shape)
-                    
-                    # Create contour plot with more levels for smoother appearance
-                    contour = ax1.contourf(X, Y, Z_wrong, levels=25, cmap='Reds', alpha=0.3)
-                    
-                    # Add contour lines for better visualization of density regions
-                    ax1.contour(X, Y, Z_wrong, levels=8, colors='darkred', alpha=0.2, linewidths=0.5)
-                except Exception as e:
-                    # Skip KDE if there's an error
-                    pass
+            # Use pre-calculated KDE and fade it in
+            Z_wrong = wrong_Z_values[current_split_idx]
+            # Fade in density
+            # alpha = 0.3 * transition_factor
+            ax1.contourf(X, Y, Z_wrong, levels=25, cmap='Reds', alpha=0.3)
+            ax1.contour(X, Y, Z_wrong, levels=8, colors='darkred', alpha=0.201, linewidths=0.5)
             
             # Update title with progress
             progress = int(transition_factor * 100)
@@ -170,8 +193,8 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             next_wrong_x, next_wrong_y = wrong_segments[next_split_idx]
             
             # Fade out current split
-            alpha_current = 0.9 * (1 - transition_progress)
-            ax1.scatter(wrong_x, wrong_y, c='red', s=10, alpha=alpha_current)
+            # alpha_current = 0.9 * (1 - transition_progress)
+            # ax1.scatter(wrong_x, wrong_y, c='red', s=10, alpha=alpha_current)
             
             # Show points from the next split progressively
             wrong_points_to_show_next = max(5, int(len(next_wrong_x) * transition_progress))
@@ -183,31 +206,14 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             alpha_next = 0.9 * transition_progress
             ax1.scatter(next_wrong_x_partial, next_wrong_y_partial, c='red', s=10, alpha=alpha_next)
             
-            # Add density plots during transition
-            # For wrong chains - blend current and next KDEs
-            if len(wrong_x) > 2 and len(next_wrong_x_partial) > 2:
-                try:
-                    # Current density
-                    wrong_data_current = np.vstack([wrong_x, wrong_y])
-                    kde_wrong_current = gaussian_kde(wrong_data_current, bw_method='scott')
-                    Z_wrong_current = kde_wrong_current(grid_points).reshape(X.shape)
-                    
-                    # Next density
-                    wrong_data_next = np.vstack([next_wrong_x_partial, next_wrong_y_partial])
-                    kde_wrong_next = gaussian_kde(wrong_data_next, bw_method='scott')
-                    Z_wrong_next = kde_wrong_next(grid_points).reshape(X.shape)
-                    
-                    # Blend densities based on transition progress
-                    Z_wrong_blend = (1 - transition_progress) * Z_wrong_current + transition_progress * Z_wrong_next
-                    
-                    # Create contour plot with more levels for smoother appearance
-                    ax1.contourf(X, Y, Z_wrong_blend, levels=25, cmap='Reds', alpha=0.3)
-                    
-                    # Add contour lines for better visualization of density regions
-                    ax1.contour(X, Y, Z_wrong_blend, levels=8, colors='darkred', alpha=0.2, linewidths=0.5)
-                except Exception as e:
-                    # Skip KDE if there's an error
-                    pass
+            # Blend pre-calculated KDEs
+            Z_wrong_current = wrong_Z_values[current_split_idx]
+            Z_wrong_next = wrong_Z_values[min(current_split_idx + 1, num_splits - 1)]
+            Z_wrong_blend = (1 - transition_progress) * Z_wrong_current + transition_progress * Z_wrong_next
+
+            # Plot blended contour
+            ax1.contourf(X, Y, Z_wrong_blend, levels=25, cmap='Reds', alpha=0.3)
+            ax1.contour(X, Y, Z_wrong_blend, levels=8, colors='darkred', alpha=0.2, linewidths=0.5)
             
             # Update title with transition
             ax1.set_title(f'Wrong Chains - Transitioning {current_split_idx+1} → {next_split_idx+1}', fontsize=14)
@@ -216,8 +222,8 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         for i in range(len(label_anchor_points)):
             ax1.scatter(
                 label_anchor_points[i, 0], label_anchor_points[i, 1], 
-                c=label_anchor_colors[i], s=100, alpha=0.9, marker=label_anchor_symbols[i],
-                edgecolors='black', linewidths=0.5
+                c=label_anchor_colors[i], s=200, alpha=0.9, marker=label_anchor_symbols[i],
+                edgecolors='black', linewidths=1.0
             )
         
         # Ensure tight layout for consistent frame size
@@ -278,22 +284,12 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             # Plot points
             ax2.scatter(correct_x_partial, correct_y_partial, c='blue', s=10, alpha=0.9)
             
-            # Compute KDE for correct chains
-            if len(correct_x_partial) > 2:
-                try:
-                    # Create KDE with adaptive bandwidth
-                    correct_data = np.vstack([correct_x_partial, correct_y_partial])
-                    kde_correct = gaussian_kde(correct_data, bw_method='scott')
-                    Z_correct = kde_correct(grid_points).reshape(X.shape)
-                    
-                    # Create contour plot with more levels for smoother appearance
-                    contour = ax2.contourf(X, Y, Z_correct, levels=25, cmap='Blues', alpha=0.3)
-                    
-                    # Add contour lines for better visualization of density regions
-                    ax2.contour(X, Y, Z_correct, levels=8, colors='darkblue', alpha=0.2, linewidths=0.5)
-                except Exception as e:
-                    # Skip KDE if there's an error
-                    pass
+            # Use pre-calculated KDE and fade it in
+            Z_correct = correct_Z_values[current_split_idx]
+            # Fade in density
+            # alpha = 0.3 * transition_factor
+            ax2.contourf(X, Y, Z_correct, levels=25, cmap='Blues', alpha=0.3)
+            ax2.contour(X, Y, Z_correct, levels=8, colors='darkblue', alpha=0.201, linewidths=0.5)
             
             # Update title with progress
             progress = int(transition_factor * 100)
@@ -305,8 +301,8 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             next_correct_x, next_correct_y = correct_segments[next_split_idx]
             
             # Fade out current split
-            alpha_current = 0.9 * (1 - transition_progress)
-            ax2.scatter(correct_x, correct_y, c='blue', s=10, alpha=alpha_current)
+            # alpha_current = 0.9 * (1 - transition_progress)
+            # ax2.scatter(correct_x, correct_y, c='blue', s=10, alpha=alpha_current)
             
             # Show points from the next split progressively
             correct_points_to_show_next = max(5, int(len(next_correct_x) * transition_progress))
@@ -318,30 +314,14 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             alpha_next = 0.9 * transition_progress
             ax2.scatter(next_correct_x_partial, next_correct_y_partial, c='blue', s=10, alpha=alpha_next)
             
-            # For correct chains - blend current and next KDEs
-            if len(correct_x) > 2 and len(next_correct_x_partial) > 2:
-                try:
-                    # Current density
-                    correct_data_current = np.vstack([correct_x, correct_y])
-                    kde_correct_current = gaussian_kde(correct_data_current, bw_method='scott')
-                    Z_correct_current = kde_correct_current(grid_points).reshape(X.shape)
-                    
-                    # Next density
-                    correct_data_next = np.vstack([next_correct_x_partial, next_correct_y_partial])
-                    kde_correct_next = gaussian_kde(correct_data_next, bw_method='scott')
-                    Z_correct_next = kde_correct_next(grid_points).reshape(X.shape)
-                    
-                    # Blend densities based on transition progress
-                    Z_correct_blend = (1 - transition_progress) * Z_correct_current + transition_progress * Z_correct_next
-                    
-                    # Create contour plot with more levels for smoother appearance
-                    ax2.contourf(X, Y, Z_correct_blend, levels=25, cmap='Blues', alpha=0.3)
-                    
-                    # Add contour lines for better visualization of density regions
-                    ax2.contour(X, Y, Z_correct_blend, levels=8, colors='darkblue', alpha=0.2, linewidths=0.5)
-                except Exception as e:
-                    # Skip KDE if there's an error
-                    pass
+            # Blend pre-calculated KDEs
+            Z_correct_current = correct_Z_values[current_split_idx]
+            Z_correct_next = correct_Z_values[min(current_split_idx + 1, num_splits - 1)]
+            Z_correct_blend = (1 - transition_progress) * Z_correct_current + transition_progress * Z_correct_next
+            
+            # Plot blended contour
+            ax2.contourf(X, Y, Z_correct_blend, levels=25, cmap='Blues', alpha=0.3)
+            ax2.contour(X, Y, Z_correct_blend, levels=8, colors='darkblue', alpha=0.2, linewidths=0.5)
             
             # Update title with transition
             ax2.set_title(f'Correct Chains - Transitioning {current_split_idx+1} → {next_split_idx+1}', fontsize=14)
@@ -350,8 +330,8 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         for i in range(len(label_anchor_points)):
             ax2.scatter(
                 label_anchor_points[i, 0], label_anchor_points[i, 1], 
-                c=label_anchor_colors[i], s=100, alpha=0.9, marker=label_anchor_symbols[i],
-                edgecolors='black', linewidths=0.5
+                c=label_anchor_colors[i], s=200, alpha=0.9, marker=label_anchor_symbols[i],
+                edgecolors='black', linewidths=1.0
             )
         
         # Ensure tight layout for consistent frame size
@@ -366,12 +346,12 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
     adjusted_fps = int(base_fps * speed_factor)
     
     # Save the animations
-    ani_wrong.save(output_filename + '_wrong.gif', writer='pillow', fps=adjusted_fps, dpi=100)
-    ani_correct.save(output_filename + '_correct.gif', writer='pillow', fps=adjusted_fps, dpi=100)
+    ani_wrong.save(output_filename + '_wrong.gif', writer='pillow', fps=adjusted_fps, dpi=200)
+    ani_correct.save(output_filename + '_correct.gif', writer='pillow', fps=adjusted_fps, dpi=200)
     
     # Save as mp4 if ffmpeg is available
-    ani_wrong.save(output_filename + '_wrong.mp4', writer='ffmpeg', fps=adjusted_fps, dpi=100)
-    ani_correct.save(output_filename + '_correct.mp4', writer='ffmpeg', fps=adjusted_fps, dpi=100)
+    ani_wrong.save(output_filename + '_wrong.mp4', writer='ffmpeg', fps=adjusted_fps, dpi=200)
+    ani_correct.save(output_filename + '_correct.mp4', writer='ffmpeg', fps=adjusted_fps, dpi=200)
     
     # Return the animation objects
     return ani_wrong, ani_correct
@@ -515,6 +495,9 @@ def get_datapoints(
 
 plt.style.use('default')
 
+import time
+t0 = time.time()
+
 # Generate and display animated plots
 method_idx = 0
 num_splits = 15
@@ -573,3 +556,5 @@ for plot_datas, splited_T_2D, num_all_thoughts_w_start_list in zip(list_plot_dat
     
     print(f"Created animations at 'chain_animation_wrong.gif' and 'chain_animation_correct.gif'")
     print(f"MP4 versions may also be available if ffmpeg is installed")
+
+print(f"==> Time taken: {time.time() - t0} seconds")
