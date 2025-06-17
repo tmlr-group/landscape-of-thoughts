@@ -77,3 +77,6 @@ exp-data/*
 bkp
 
 .cursor
+intro.sh
+demo.ipynb
+*.gif
