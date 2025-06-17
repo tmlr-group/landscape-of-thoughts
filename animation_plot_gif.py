@@ -122,25 +122,15 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
     
     # Create separate update functions for wrong and correct chains
     def update_wrong(frame):
-        # Clear axes
-        ax1.clear()
-        
-        # Reset axis properties
-        ax1.set_xlim(x_min, x_max)
-        ax1.set_ylim(y_min, y_max)
-        ax1.set_title('Wrong Chains', fontsize=14)
-        
         # Calculate which split we're on and whether we're in a transition
         adjusted_frame = frame
         current_split_idx = 0
         in_transition = False
         transition_progress = 0
         
-        # Determine if we're in a transition between splits
         for i in range(num_splits):
             if i > 0:
                 if adjusted_frame < transition_frames:
-                    # We're in transition between split i-1 and i
                     current_split_idx = i - 1
                     in_transition = True
                     transition_progress = adjusted_frame / transition_frames
@@ -148,14 +138,33 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
                 adjusted_frame -= transition_frames
                 
             if adjusted_frame < frames_per_split:
-                # We're within split i
                 current_split_idx = i
                 in_transition = False
                 break
             adjusted_frame -= frames_per_split
         
-        # Ensure we don't exceed the last split
         current_split_idx = min(current_split_idx, num_splits - 1)
+
+        # Check if there's data to plot for this frame
+        should_update = False
+        if not in_transition:
+            # Update if the current split has data
+            if len(wrong_segments[current_split_idx][0]) > 0:
+                should_update = True
+        else:
+            # Update if either of the splits in transition has data
+            next_split_idx = min(current_split_idx + 1, num_splits - 1)
+            if len(wrong_segments[current_split_idx][0]) > 0 or len(wrong_segments[next_split_idx][0]) > 0:
+                should_update = True
+        
+        if not should_update:
+            return  # Skip updating this frame
+            
+        # Clear axes and reset properties
+        ax1.clear()
+        ax1.set_xlim(x_min, x_max)
+        ax1.set_ylim(y_min, y_max)
+        ax1.set_title('Wrong Chains', fontsize=14)
         
         # Get current split data
         wrong_x, wrong_y = wrong_segments[current_split_idx]
@@ -164,37 +173,27 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         if not in_transition:
             # Regular split display - show points progressively
             frame_within_split = adjusted_frame
-            transition_factor = (frame_within_split + 1) / frames_per_split  # 0 to 1
+            transition_factor = (frame_within_split + 1) / frames_per_split
             
-            # Calculate how many points to show based on transition factor
             wrong_points_to_show = max(5, int(len(wrong_x) * transition_factor))
             
-            # Show the current split with transition effect
             wrong_x_partial = wrong_x[:wrong_points_to_show]
             wrong_y_partial = wrong_y[:wrong_points_to_show]
             
-            # Plot points
             ax1.scatter(wrong_x_partial, wrong_y_partial, c='red', s=10, alpha=0.9)
             
             # Use pre-calculated KDE and fade it in
             Z_wrong = wrong_Z_values[current_split_idx]
-            # Fade in density
-            # alpha = 0.3 * transition_factor
             ax1.contourf(X, Y, Z_wrong, levels=25, cmap='Reds', alpha=0.3)
             ax1.contour(X, Y, Z_wrong, levels=8, colors='darkred', alpha=0.201, linewidths=0.5)
             
-            # Update title with progress
             progress = int(transition_factor * 100)
             ax1.set_title(f'Wrong Chains - Split {current_split_idx+1}/{num_splits} ({progress}% complete)', fontsize=14)
             
         else:
-            # Transition between splits - blend from current to next split
+            # Transition between splits
             next_split_idx = min(current_split_idx + 1, num_splits - 1)
             next_wrong_x, next_wrong_y = wrong_segments[next_split_idx]
-            
-            # Fade out current split
-            # alpha_current = 0.9 * (1 - transition_progress)
-            # ax1.scatter(wrong_x, wrong_y, c='red', s=10, alpha=alpha_current)
             
             # Show points from the next split progressively
             wrong_points_to_show_next = max(5, int(len(next_wrong_x) * transition_progress))
@@ -202,20 +201,17 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             next_wrong_x_partial = next_wrong_x[:wrong_points_to_show_next]
             next_wrong_y_partial = next_wrong_y[:wrong_points_to_show_next]
             
-            # Fade in next split
             alpha_next = 0.9 * transition_progress
             ax1.scatter(next_wrong_x_partial, next_wrong_y_partial, c='red', s=10, alpha=alpha_next)
             
             # Blend pre-calculated KDEs
             Z_wrong_current = wrong_Z_values[current_split_idx]
-            Z_wrong_next = wrong_Z_values[min(current_split_idx + 1, num_splits - 1)]
+            Z_wrong_next = wrong_Z_values[next_split_idx]
             Z_wrong_blend = (1 - transition_progress) * Z_wrong_current + transition_progress * Z_wrong_next
 
-            # Plot blended contour
             ax1.contourf(X, Y, Z_wrong_blend, levels=25, cmap='Reds', alpha=0.3)
             ax1.contour(X, Y, Z_wrong_blend, levels=8, colors='darkred', alpha=0.2, linewidths=0.5)
-            
-            # Update title with transition
+
             ax1.set_title(f'Wrong Chains - Transitioning {current_split_idx+1} → {next_split_idx+1}', fontsize=14)
         
         # Always plot anchor points
@@ -226,29 +222,18 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
                 edgecolors='black', linewidths=1.0
             )
         
-        # Ensure tight layout for consistent frame size
         fig_wrong.tight_layout()
     
     def update_correct(frame):
-        # Clear axes
-        ax2.clear()
-        
-        # Reset axis properties
-        ax2.set_xlim(x_min, x_max)
-        ax2.set_ylim(y_min, y_max)
-        ax2.set_title('Correct Chains', fontsize=14)
-        
         # Calculate which split we're on and whether we're in a transition
         adjusted_frame = frame
         current_split_idx = 0
         in_transition = False
         transition_progress = 0
         
-        # Determine if we're in a transition between splits
         for i in range(num_splits):
             if i > 0:
                 if adjusted_frame < transition_frames:
-                    # We're in transition between split i-1 and i
                     current_split_idx = i - 1
                     in_transition = True
                     transition_progress = adjusted_frame / transition_frames
@@ -256,14 +241,33 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
                 adjusted_frame -= transition_frames
                 
             if adjusted_frame < frames_per_split:
-                # We're within split i
                 current_split_idx = i
                 in_transition = False
                 break
             adjusted_frame -= frames_per_split
         
-        # Ensure we don't exceed the last split
         current_split_idx = min(current_split_idx, num_splits - 1)
+
+        # Check if there's data to plot for this frame
+        should_update = False
+        if not in_transition:
+            # Update if the current split has data
+            if len(correct_segments[current_split_idx][0]) > 0:
+                should_update = True
+        else:
+            # Update if either of the splits in transition has data
+            next_split_idx = min(current_split_idx + 1, num_splits - 1)
+            if len(correct_segments[current_split_idx][0]) > 0 or len(correct_segments[next_split_idx][0]) > 0:
+                should_update = True
+        
+        if not should_update:
+            return  # Skip updating this frame
+            
+        # Clear axes and reset properties
+        ax2.clear()
+        ax2.set_xlim(x_min, x_max)
+        ax2.set_ylim(y_min, y_max)
+        ax2.set_title('Correct Chains', fontsize=14)
         
         # Get current split data
         correct_x, correct_y = correct_segments[current_split_idx]
@@ -272,37 +276,27 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         if not in_transition:
             # Regular split display - show points progressively
             frame_within_split = adjusted_frame
-            transition_factor = (frame_within_split + 1) / frames_per_split  # 0 to 1
+            transition_factor = (frame_within_split + 1) / frames_per_split
             
-            # Calculate how many points to show based on transition factor
             correct_points_to_show = max(5, int(len(correct_x) * transition_factor))
             
-            # Show the current split with transition effect
             correct_x_partial = correct_x[:correct_points_to_show]
             correct_y_partial = correct_y[:correct_points_to_show]
             
-            # Plot points
             ax2.scatter(correct_x_partial, correct_y_partial, c='blue', s=10, alpha=0.9)
             
             # Use pre-calculated KDE and fade it in
             Z_correct = correct_Z_values[current_split_idx]
-            # Fade in density
-            # alpha = 0.3 * transition_factor
             ax2.contourf(X, Y, Z_correct, levels=25, cmap='Blues', alpha=0.3)
             ax2.contour(X, Y, Z_correct, levels=8, colors='darkblue', alpha=0.201, linewidths=0.5)
-            
-            # Update title with progress
+
             progress = int(transition_factor * 100)
             ax2.set_title(f'Correct Chains - Split {current_split_idx+1}/{num_splits} ({progress}% complete)', fontsize=14)
             
         else:
-            # Transition between splits - blend from current to next split
+            # Transition between splits
             next_split_idx = min(current_split_idx + 1, num_splits - 1)
             next_correct_x, next_correct_y = correct_segments[next_split_idx]
-            
-            # Fade out current split
-            # alpha_current = 0.9 * (1 - transition_progress)
-            # ax2.scatter(correct_x, correct_y, c='blue', s=10, alpha=alpha_current)
             
             # Show points from the next split progressively
             correct_points_to_show_next = max(5, int(len(next_correct_x) * transition_progress))
@@ -310,20 +304,17 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
             next_correct_x_partial = next_correct_x[:correct_points_to_show_next]
             next_correct_y_partial = next_correct_y[:correct_points_to_show_next]
             
-            # Fade in next split
             alpha_next = 0.9 * transition_progress
             ax2.scatter(next_correct_x_partial, next_correct_y_partial, c='blue', s=10, alpha=alpha_next)
             
             # Blend pre-calculated KDEs
             Z_correct_current = correct_Z_values[current_split_idx]
-            Z_correct_next = correct_Z_values[min(current_split_idx + 1, num_splits - 1)]
+            Z_correct_next = correct_Z_values[next_split_idx]
             Z_correct_blend = (1 - transition_progress) * Z_correct_current + transition_progress * Z_correct_next
             
-            # Plot blended contour
             ax2.contourf(X, Y, Z_correct_blend, levels=25, cmap='Blues', alpha=0.3)
             ax2.contour(X, Y, Z_correct_blend, levels=8, colors='darkblue', alpha=0.2, linewidths=0.5)
             
-            # Update title with transition
             ax2.set_title(f'Correct Chains - Transitioning {current_split_idx+1} → {next_split_idx+1}', fontsize=14)
         
         # Always plot anchor points
@@ -334,7 +325,6 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
                 edgecolors='black', linewidths=1.0
             )
         
-        # Ensure tight layout for consistent frame size
         fig_correct.tight_layout()
     
     # Create animations
