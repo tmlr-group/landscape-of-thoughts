@@ -116,6 +116,8 @@ plot(
 )
 ```
 
+You can also use the `animation_plot` function to generate the animation of the reasoning process. More details can be found in [animation.ipynb](./anima.ipynb).
+
 ## 🔧 Key Parameters
 
 - `model_name`: Name of the LLM to use (e.g., meta-llama/Meta-Llama-3-8B-Instruct-Lite)
