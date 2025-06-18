@@ -472,7 +472,7 @@ def animation_plot(
     method: str = None,
     plot_type: str = 'method',
     save_root: str = "Landscape-Data",
-    save_video: bool = False,
+    save_video: bool = True,
     output_dir: str = "figures/animation",
     speed_factor: float = 0.8,
     base_fps: int = 30,
@@ -505,6 +505,7 @@ def animation_plot(
     )
 
     animation_list = []
+    method_idx = 0
     print("==> Creating animations...")
     for plot_datas, splited_T_2D, num_all_thoughts_w_start_list in zip(list_plot_data, list_all_T_2D, list_num_all_thoughts_w_start_list):
         # Create the landscape figure with customizable number of subfigures
@@ -534,19 +535,21 @@ def animation_plot(
         adjusted_fps = int(base_fps * speed_factor)
 
         os.makedirs(output_dir, exist_ok=True)
-        output_filename = f'{output_dir}/chain_animation_{model_name}_{dataset_name}_{method}'
+        output_filename = f'{output_dir}/chain_animation_{model_name}_{dataset_name}_{methods[method_idx]}'
         
         if save_video:
+            print(f"==> Saving animations to {output_filename}...")
             # Save the animations
-            ani_wrong.save(output_filename + '_wrong.gif', writer='pillow', fps=adjusted_fps, dpi=200)
-            ani_correct.save(output_filename + '_correct.gif', writer='pillow', fps=adjusted_fps, dpi=200)
+            # ani_wrong.save(output_filename + '_wrong.gif', writer='pillow', fps=adjusted_fps, dpi=200)
+            # ani_correct.save(output_filename + '_correct.gif', writer='pillow', fps=adjusted_fps, dpi=200)
             
             # Save as mp4 if ffmpeg is available
             ani_wrong.save(output_filename + '_wrong.mp4', writer='ffmpeg', fps=adjusted_fps, dpi=200)
             ani_correct.save(output_filename + '_correct.mp4', writer='ffmpeg', fps=adjusted_fps, dpi=200)
 
-            print(f"Created animations at 'chain_animation_wrong.gif' and 'chain_animation_correct.gif'")
-            print(f"MP4 versions may also be available if ffmpeg is installed")
+            print(f"==> Saved animations to MP4 format")
+
+        method_idx += 1
 
     print(f"==> Time taken: {time.time() - t0} seconds")
     return animation_list
