@@ -43,9 +43,32 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
     # Animation parameters
     frames_per_split = 20  # Number of frames per split
     transition_frames = 10  # Number of frames for transition between splits
+
+    # --- Process Wrong Chains ---
+    last_split_wrong = -1
+    for i in range(num_splits - 1, -1, -1):
+        if len(wrong_segments[i][0]) > 0:
+            last_split_wrong = i
+            break
     
-    # Calculate the total number of frames
-    total_frames = num_splits * frames_per_split + (num_splits - 1) * transition_frames
+    if last_split_wrong != -1:
+        num_splits_wrong = last_split_wrong + 1
+        total_frames_wrong = num_splits_wrong * frames_per_split + max(0, num_splits_wrong - 1) * transition_frames
+    else:
+        total_frames_wrong = 1
+
+    # --- Process Correct Chains ---
+    last_split_correct = -1
+    for i in range(num_splits - 1, -1, -1):
+        if len(correct_segments[i][0]) > 0:
+            last_split_correct = i
+            break
+            
+    if last_split_correct != -1:
+        num_splits_correct = last_split_correct + 1
+        total_frames_correct = num_splits_correct * frames_per_split + max(0, num_splits_correct - 1) * transition_frames
+    else:
+        total_frames_correct = 1
     
     # Find global min and max for consistent axis limits
     all_x_wrong = []
@@ -118,6 +141,8 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
     
     # Create separate update functions for wrong and correct chains
     def update_wrong(frame):
+        num_splits = last_split_wrong + 1
+        total_frames = total_frames_wrong
         # Calculate which split we're on and whether we're in a transition
         adjusted_frame = frame
         current_split_idx = 0
@@ -141,74 +166,68 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         
         current_split_idx = min(current_split_idx, num_splits - 1)
 
+        # Clear axes and reset properties for every frame
+        ax1.clear()
+        ax1.set_xlim(x_min, x_max)
+        ax1.set_ylim(y_min, y_max)
+        overall_progress = (frame + 1) / total_frames * 100
+        ax1.set_title(f'Wrong Chains ({overall_progress:.0f}%)', fontsize=14)
+
         # Check if there's data to plot for this frame
-        should_update = False
+        should_plot_chains = False
         if not in_transition:
             # Update if the current split has data
             if len(wrong_segments[current_split_idx][0]) > 0:
-                should_update = True
+                should_plot_chains = True
         else:
             # Update if either of the splits in transition has data
             next_split_idx = min(current_split_idx + 1, num_splits - 1)
             if len(wrong_segments[current_split_idx][0]) > 0 or len(wrong_segments[next_split_idx][0]) > 0:
-                should_update = True
+                should_plot_chains = True
         
-        if not should_update:
-            return  # Skip updating this frame
+        if should_plot_chains:
+            # Get current split data
+            wrong_x, wrong_y = wrong_segments[current_split_idx]
             
-        # Clear axes and reset properties
-        ax1.clear()
-        ax1.set_xlim(x_min, x_max)
-        ax1.set_ylim(y_min, y_max)
-        ax1.set_title('Wrong Chains', fontsize=14)
-        
-        # Get current split data
-        wrong_x, wrong_y = wrong_segments[current_split_idx]
-        
-        # Handle regular split display or transition
-        if not in_transition:
-            # Regular split display - show points progressively
-            frame_within_split = adjusted_frame
-            transition_factor = (frame_within_split + 1) / frames_per_split
-            
-            wrong_points_to_show = max(5, int(len(wrong_x) * transition_factor))
-            
-            wrong_x_partial = wrong_x[:wrong_points_to_show]
-            wrong_y_partial = wrong_y[:wrong_points_to_show]
-            
-            ax1.scatter(wrong_x_partial, wrong_y_partial, c='red', s=10, alpha=0.9)
-            
-            # Use pre-calculated KDE and fade it in
-            Z_wrong = wrong_Z_values[current_split_idx]
-            ax1.contourf(X, Y, Z_wrong, levels=25, cmap='Reds', alpha=0.3)
-            ax1.contour(X, Y, Z_wrong, levels=8, colors='darkred', alpha=0.201, linewidths=0.5)
-            
-            progress = int(transition_factor * 100)
-            ax1.set_title(f'Wrong Chains - Split {current_split_idx+1}/{num_splits} ({progress}% complete)', fontsize=14)
-            
-        else:
-            # Transition between splits
-            next_split_idx = min(current_split_idx + 1, num_splits - 1)
-            next_wrong_x, next_wrong_y = wrong_segments[next_split_idx]
-            
-            # Show points from the next split progressively
-            wrong_points_to_show_next = max(5, int(len(next_wrong_x) * transition_progress))
-            
-            next_wrong_x_partial = next_wrong_x[:wrong_points_to_show_next]
-            next_wrong_y_partial = next_wrong_y[:wrong_points_to_show_next]
-            
-            alpha_next = 0.9 * transition_progress
-            ax1.scatter(next_wrong_x_partial, next_wrong_y_partial, c='red', s=10, alpha=alpha_next)
-            
-            # Blend pre-calculated KDEs
-            Z_wrong_current = wrong_Z_values[current_split_idx]
-            Z_wrong_next = wrong_Z_values[next_split_idx]
-            Z_wrong_blend = (1 - transition_progress) * Z_wrong_current + transition_progress * Z_wrong_next
+            # Handle regular split display or transition
+            if not in_transition:
+                # Regular split display - show points progressively
+                frame_within_split = adjusted_frame
+                transition_factor = (frame_within_split + 1) / frames_per_split
+                
+                wrong_points_to_show = max(5, int(len(wrong_x) * transition_factor))
+                
+                wrong_x_partial = wrong_x[:wrong_points_to_show]
+                wrong_y_partial = wrong_y[:wrong_points_to_show]
+                
+                ax1.scatter(wrong_x_partial, wrong_y_partial, c='red', s=10, alpha=0.9)
+                
+                # Use pre-calculated KDE and fade it in
+                Z_wrong = wrong_Z_values[current_split_idx]
+                ax1.contourf(X, Y, Z_wrong, levels=25, cmap='Reds', alpha=0.3)
+                ax1.contour(X, Y, Z_wrong, levels=8, colors='darkred', alpha=0.201, linewidths=0.5)
+                
+            else:
+                # Transition between splits
+                next_split_idx = min(current_split_idx + 1, num_splits - 1)
+                next_wrong_x, next_wrong_y = wrong_segments[next_split_idx]
+                
+                # Show points from the next split progressively
+                wrong_points_to_show_next = max(5, int(len(next_wrong_x) * transition_progress))
+                
+                next_wrong_x_partial = next_wrong_x[:wrong_points_to_show_next]
+                next_wrong_y_partial = next_wrong_y[:wrong_points_to_show_next]
+                
+                alpha_next = 0.9 * transition_progress
+                ax1.scatter(next_wrong_x_partial, next_wrong_y_partial, c='red', s=10, alpha=alpha_next)
+                
+                # Blend pre-calculated KDEs
+                Z_wrong_current = wrong_Z_values[current_split_idx]
+                Z_wrong_next = wrong_Z_values[next_split_idx]
+                Z_wrong_blend = (1 - transition_progress) * Z_wrong_current + transition_progress * Z_wrong_next
 
-            ax1.contourf(X, Y, Z_wrong_blend, levels=25, cmap='Reds', alpha=0.3)
-            ax1.contour(X, Y, Z_wrong_blend, levels=8, colors='darkred', alpha=0.2, linewidths=0.5)
-
-            ax1.set_title(f'Wrong Chains - Transitioning {current_split_idx+1} → {next_split_idx+1}', fontsize=14)
+                ax1.contourf(X, Y, Z_wrong_blend, levels=25, cmap='Reds', alpha=0.3)
+                ax1.contour(X, Y, Z_wrong_blend, levels=8, colors='darkred', alpha=0.2, linewidths=0.5)
         
         # Always plot anchor points
         for i in range(len(label_anchor_points)):
@@ -221,6 +240,8 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         fig_wrong.tight_layout()
     
     def update_correct(frame):
+        num_splits = last_split_correct + 1
+        total_frames = total_frames_correct
         # Calculate which split we're on and whether we're in a transition
         adjusted_frame = frame
         current_split_idx = 0
@@ -244,74 +265,68 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         
         current_split_idx = min(current_split_idx, num_splits - 1)
 
+        # Clear axes and reset properties for every frame
+        ax2.clear()
+        ax2.set_xlim(x_min, x_max)
+        ax2.set_ylim(y_min, y_max)
+        overall_progress = (frame + 1) / total_frames * 100
+        ax2.set_title(f'Correct Chains ({overall_progress:.0f}%)', fontsize=14)
+
         # Check if there's data to plot for this frame
-        should_update = False
+        should_plot_chains = False
         if not in_transition:
             # Update if the current split has data
             if len(correct_segments[current_split_idx][0]) > 0:
-                should_update = True
+                should_plot_chains = True
         else:
             # Update if either of the splits in transition has data
             next_split_idx = min(current_split_idx + 1, num_splits - 1)
             if len(correct_segments[current_split_idx][0]) > 0 or len(correct_segments[next_split_idx][0]) > 0:
-                should_update = True
+                should_plot_chains = True
         
-        if not should_update:
-            return  # Skip updating this frame
+        if should_plot_chains:
+            # Get current split data
+            correct_x, correct_y = correct_segments[current_split_idx]
             
-        # Clear axes and reset properties
-        ax2.clear()
-        ax2.set_xlim(x_min, x_max)
-        ax2.set_ylim(y_min, y_max)
-        ax2.set_title('Correct Chains', fontsize=14)
-        
-        # Get current split data
-        correct_x, correct_y = correct_segments[current_split_idx]
-        
-        # Handle regular split display or transition
-        if not in_transition:
-            # Regular split display - show points progressively
-            frame_within_split = adjusted_frame
-            transition_factor = (frame_within_split + 1) / frames_per_split
-            
-            correct_points_to_show = max(5, int(len(correct_x) * transition_factor))
-            
-            correct_x_partial = correct_x[:correct_points_to_show]
-            correct_y_partial = correct_y[:correct_points_to_show]
-            
-            ax2.scatter(correct_x_partial, correct_y_partial, c='blue', s=10, alpha=0.9)
-            
-            # Use pre-calculated KDE and fade it in
-            Z_correct = correct_Z_values[current_split_idx]
-            ax2.contourf(X, Y, Z_correct, levels=25, cmap='Blues', alpha=0.3)
-            ax2.contour(X, Y, Z_correct, levels=8, colors='darkblue', alpha=0.201, linewidths=0.5)
-
-            progress = int(transition_factor * 100)
-            ax2.set_title(f'Correct Chains - Split {current_split_idx+1}/{num_splits} ({progress}% complete)', fontsize=14)
-            
-        else:
-            # Transition between splits
-            next_split_idx = min(current_split_idx + 1, num_splits - 1)
-            next_correct_x, next_correct_y = correct_segments[next_split_idx]
-            
-            # Show points from the next split progressively
-            correct_points_to_show_next = max(5, int(len(next_correct_x) * transition_progress))
-            
-            next_correct_x_partial = next_correct_x[:correct_points_to_show_next]
-            next_correct_y_partial = next_correct_y[:correct_points_to_show_next]
-            
-            alpha_next = 0.9 * transition_progress
-            ax2.scatter(next_correct_x_partial, next_correct_y_partial, c='blue', s=10, alpha=alpha_next)
-            
-            # Blend pre-calculated KDEs
-            Z_correct_current = correct_Z_values[current_split_idx]
-            Z_correct_next = correct_Z_values[next_split_idx]
-            Z_correct_blend = (1 - transition_progress) * Z_correct_current + transition_progress * Z_correct_next
-            
-            ax2.contourf(X, Y, Z_correct_blend, levels=25, cmap='Blues', alpha=0.3)
-            ax2.contour(X, Y, Z_correct_blend, levels=8, colors='darkblue', alpha=0.2, linewidths=0.5)
-            
-            ax2.set_title(f'Correct Chains - Transitioning {current_split_idx+1} → {next_split_idx+1}', fontsize=14)
+            # Handle regular split display or transition
+            if not in_transition:
+                # Regular split display - show points progressively
+                frame_within_split = adjusted_frame
+                transition_factor = (frame_within_split + 1) / frames_per_split
+                
+                correct_points_to_show = max(5, int(len(correct_x) * transition_factor))
+                
+                correct_x_partial = correct_x[:correct_points_to_show]
+                correct_y_partial = correct_y[:correct_points_to_show]
+                
+                ax2.scatter(correct_x_partial, correct_y_partial, c='blue', s=10, alpha=0.9)
+                
+                # Use pre-calculated KDE and fade it in
+                Z_correct = correct_Z_values[current_split_idx]
+                ax2.contourf(X, Y, Z_correct, levels=25, cmap='Blues', alpha=0.3)
+                ax2.contour(X, Y, Z_correct, levels=8, colors='darkblue', alpha=0.201, linewidths=0.5)
+                
+            else:
+                # Transition between splits
+                next_split_idx = min(current_split_idx + 1, num_splits - 1)
+                next_correct_x, next_correct_y = correct_segments[next_split_idx]
+                
+                # Show points from the next split progressively
+                correct_points_to_show_next = max(5, int(len(next_correct_x) * transition_progress))
+                
+                next_correct_x_partial = next_correct_x[:correct_points_to_show_next]
+                next_correct_y_partial = next_correct_y[:correct_points_to_show_next]
+                
+                alpha_next = 0.9 * transition_progress
+                ax2.scatter(next_correct_x_partial, next_correct_y_partial, c='blue', s=10, alpha=alpha_next)
+                
+                # Blend pre-calculated KDEs
+                Z_correct_current = correct_Z_values[current_split_idx]
+                Z_correct_next = correct_Z_values[next_split_idx]
+                Z_correct_blend = (1 - transition_progress) * Z_correct_current + transition_progress * Z_correct_next
+                
+                ax2.contourf(X, Y, Z_correct_blend, levels=25, cmap='Blues', alpha=0.3)
+                ax2.contour(X, Y, Z_correct_blend, levels=8, colors='darkblue', alpha=0.2, linewidths=0.5)
         
         # Always plot anchor points
         for i in range(len(label_anchor_points)):
@@ -324,8 +339,27 @@ def create_animation_from_chains(wrong_segments, correct_segments, label_anchor_
         fig_correct.tight_layout()
     
     # Create animations
-    ani_wrong = FuncAnimation(fig_wrong, update_wrong, frames=total_frames, blit=False)
-    ani_correct = FuncAnimation(fig_correct, update_correct, frames=total_frames, blit=False)
+    if last_split_wrong == -1:
+        ax1.clear()
+        ax1.set_xlim(x_min, x_max)
+        ax1.set_ylim(y_min, y_max)
+        ax1.set_title('Wrong Chains', fontsize=14)
+        ax1.text(0.5, 0.5, 'No data to display', ha='center', va='center', transform=ax1.transAxes)
+        fig_wrong.tight_layout()
+        ani_wrong = FuncAnimation(fig_wrong, lambda f: None, frames=1)
+    else:
+        ani_wrong = FuncAnimation(fig_wrong, update_wrong, frames=total_frames_wrong, blit=False)
+
+    if last_split_correct == -1:
+        ax2.clear()
+        ax2.set_xlim(x_min, x_max)
+        ax2.set_ylim(y_min, y_max)
+        ax2.set_title('Correct Chains', fontsize=14)
+        ax2.text(0.5, 0.5, 'No data to display', ha='center', va='center', transform=ax2.transAxes)
+        fig_correct.tight_layout()
+        ani_correct = FuncAnimation(fig_correct, lambda f: None, frames=1)
+    else:
+        ani_correct = FuncAnimation(fig_correct, update_correct, frames=total_frames_correct, blit=False)
     
     # Return the animation objects
     return ani_wrong, ani_correct
