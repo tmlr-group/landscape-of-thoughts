@@ -8,7 +8,12 @@
 [![Hugging Face Datasets](https://img.shields.io/badge/Datasets-blue)](https://huggingface.co/datasets/GazeEzio/Landscape-Data)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1IgLREaEw-FeJbKn9NfYGIyaex2QhgCT2?usp=sharing)
 
-![Demo](assets/demo.png)
+<div align="center">
+    <figure>
+        <img src="assets/demo.png" alt="Demo of Landscape of Thoughts Visualization">
+        <figcaption style="text-align: left;">Illustration of Landscape of thoughts for visualizing the reasoning steps of LLMs. Note that the <span style="color: red;">red</span> landscape represents wrong reasoning cases, while the <span style="color: lightblue;">blue</span> indicates the correct ones. The darker regions in landscapes indicate more thoughts, with <img src="./assets/red_cross.png" style="height:1.0em; vertical-align:middle;"> indicating incorrect answers and <img src="./assets/green_star.png" style="height:1.0em; vertical-align:middle;"> marking correct answers. </figcaption>
+    </figure>
+</div>
 
 </div>
 
@@ -28,6 +33,8 @@ Through qualitative and quantitative analysis, Landscape of Thoughts enables res
 - **Identify failure modes**: Reveal undesirable reasoning patterns such as inconsistency and high uncertainty
 
 ## Installation
+
+We provide two installation methods:
 
 ### Package Installation (Recommended)
 
@@ -61,9 +68,16 @@ Before analyzing your data, you need to set up a language model. For detailed in
 
 ## Usage
 
+Two ways to use the framework to plot the landscape, depending on the installation method:
+
+- If you installed the package, you can use the `lot` command to plot the landscape.
+- If you installed the framework from source, you can use the `main.py` script to plot the landscape.
+
 ### Quick Start with Command Line Interface
 
 After installing the package and setting up your model, you can start analyzing reasoning patterns immediately:
+
+For example, the following command executes the complete analysis pipeline. It employs the `meta-llama/Llama-3.2-1B-Instruct` model to generate 10 reasoning traces for each of the first 5 examples in the `AQUA` dataset, using the Chain-of-Thought (`cot`) method. The model is hosted locally (`--local`) via vLLM with the API key `token-abc123`. Finally, it generates and saves the landscape visualization in the `figures/landscape`. More configuration options are available in the [configuration section](#configuration).
 
 ```bash
 lot --task all \
@@ -103,7 +117,13 @@ For advanced usage and integration into research workflows, you can utilize the 
 - `sample`: This option generates reasoning traces from the language model.
 - `calculate`: This option computes distance matrices between reasoning states.
 - `plot`: This option creates visualizations of the reasoning landscape.
-- `all`: This option executes the complete pipeline sequentially, encompassing all previous tasks.
+- `all`: This option executes the complete all three tasks.
+
+The following example demonstrates how to use the API to perform each step of the analysis pipeline individually.
+
+1. `sample` generates 10 reasoning traces for the first 5 examples of the `AQUA` dataset using the `meta-llama/Meta-Llama-3-8B-Instruct` model and the CoT method.
+2. `calculate` computes the distance matrices for these traces.
+3. `plot` generates the landscape visualization from the processed data.
 
 ```python
 from lot import sample, calculate, plot
@@ -137,13 +157,23 @@ plot(
 
 ### Animation Visualization
 
-Generate dynamic visualizations of the reasoning process:
+The example below shows how to generate an animation for the `Meta-Llama-3.1-70B-Instruct-Turbo` model on the `AQUA` dataset using the CoT method. The animation will be saved to the `figures/animation` directory. Note that the `Landscape-Data` is pulled from the [Landscape-Data](https://huggingface.co/datasets/GazeEzio/Landscape-Data) dataset.
 
 ```python
 from lot.animation import animation_plot
+from datasets import load_dataset
 
-# Create animated reasoning trace visualization
-animation_plot(model_name, dataset_name, method)
+# This will download and cache the dataset in the "Landscape-Data" directory
+dataset = load_dataset("GazeEzio/Landscape-Data", cache_dir="Landscape-Data")
+
+animation_plot(
+    model_name = 'Meta-Llama-3.1-70B-Instruct-Turbo',
+    dataset_name = 'aqua',
+    method = 'cot',
+    save_root = "Landscape-Data",
+    save_video = True,
+    output_dir = "figures/animation",
+)
 ```
 
 For detailed examples, see [animation.ipynb](./animation.ipynb).
@@ -220,17 +250,17 @@ Create your own datasets following our format specifications. For detailed instr
 
 ### Reasoning Methods
 
-- **Chain-of-Thought (CoT)**: Sequential step-by-step reasoning
-- **Tree-of-Thoughts (ToT)**: Branching reasoning exploration
-- **Monte Carlo Tree Search (MCTS)**: Strategic reasoning path search
-- **Look-to-Measure (L2M)**: Uncertainty-aware reasoning
+- **Chain-of-Thought (CoT)**: Step-by-step sequential reasoning
+- **Tree-of-Thoughts (ToT)**: Exploration of multiple reasoning branches
+- **Monte Carlo Tree Search (MCTS)**: Strategic search through reasoning paths
+- **Least-to-Most (L2M)**: Decomposes complex problems into a sequence of simpler subproblems
 
 ### Visualization Types
 
 - **Method comparison**: Compare different reasoning approaches
 - **Correctness analysis**: Distinguish correct vs. incorrect reasoning
 - **Task analysis**: Explore reasoning patterns across problem types
-- **Temporal dynamics**: Animate reasoning progression over time
+- **Temporal dynamics**: Animate reasoning progression over reasoning steps
 
 ## Examples and Tutorials
 
@@ -238,7 +268,7 @@ Create your own datasets following our format specifications. For detailed instr
 - [Custom Model Integration](examples/custom_model_example.py)
 - [Dataset Creation](examples/dataset_example.py)
 - [Prompt Customization](examples/prompt_example.py)
-- [Animation Tutorial](anima.ipynb)
+- [Animation Tutorial](animation.ipynb)
 - [Quick Start Notebook](quick_start.ipynb)
 
 ## Citation
