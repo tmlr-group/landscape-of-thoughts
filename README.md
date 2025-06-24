@@ -110,7 +110,7 @@ from lot import sample, calculate, plot
 
 # Generate reasoning traces
 features, metrics = sample(
-    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct",
     dataset_name="aqua",
     method="cot",
     num_samples=10,
@@ -120,7 +120,7 @@ features, metrics = sample(
 
 # Calculate distance matrices
 distance_matrices = calculate(
-    model_name="meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+    model_name="meta-llama/Meta-Llama-3-8B-Instruct",
     dataset_name="aqua",
     method="cot",
     start_index=0,
@@ -129,7 +129,7 @@ distance_matrices = calculate(
 
 # Generate visualizations
 plot(
-    model_name="Meta-Llama-3-8B-Instruct-Lite",
+    model_name="Meta-Llama-3-8B-Instruct",
     dataset_name="aqua",
     method="cot",
 )
