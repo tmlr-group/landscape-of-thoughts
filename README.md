@@ -244,7 +244,7 @@ The framework accepts any multiple-choice question dataset in JSONL format with 
 
 #### Custom Datasets
 
-Create your own datasets following our format specifications. For detailed instructions on creating, validating, and using custom datasets, see our [Custom Datasets Guide](./doc/custom_datasets.md).
+Create your own datasets following our format specifications. For detailed instructions on creating, validating, and using custom datasets, see our [Custom Datasets Guidance](./doc/custom_datasets.md).
 
 ## Advanced Features
 
