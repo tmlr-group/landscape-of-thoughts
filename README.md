@@ -32,6 +32,15 @@ Through qualitative and quantitative analysis, Landscape of Thoughts enables res
 - **Explore task diversity**: Understand reasoning patterns across different types of problems
 - **Identify failure modes**: Reveal undesirable reasoning patterns such as inconsistency and high uncertainty
 
+## Examples and Tutorials
+
+- [Dataset and Model Usage](examples/dataset_and_model_usage.py)
+- [Custom Model Integration](examples/custom_model_example.py)
+- [Dataset Creation](examples/dataset_example.py)
+- [Prompt Customization](examples/prompt_example.py)
+- [Animation Tutorial](animation.ipynb)
+- [Quick Start Notebook](quick_start.ipynb)
+
 ## Installation
 
 We provide two installation methods:
@@ -261,15 +270,6 @@ Create your own datasets following our format specifications. For detailed instr
 - **Correctness analysis**: Distinguish correct vs. incorrect reasoning
 - **Task analysis**: Explore reasoning patterns across problem types
 - **Temporal dynamics**: Animate reasoning progression over reasoning steps
-
-## Examples and Tutorials
-
-- [Dataset and Model Usage](examples/dataset_and_model_usage.py)
-- [Custom Model Integration](examples/custom_model_example.py)
-- [Dataset Creation](examples/dataset_example.py)
-- [Prompt Customization](examples/prompt_example.py)
-- [Animation Tutorial](animation.ipynb)
-- [Quick Start Notebook](quick_start.ipynb)
 
 ## Citation
 
