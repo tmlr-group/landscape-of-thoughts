@@ -64,7 +64,7 @@ pip install fire --use-pep517
 
 ### Model Setup
 
-Before analyzing your data, you need to set up a language model. For detailed instructions, see our [model setup guide](doc/setup_model.md).
+Before analyzing your data, you need to set up a language model. For detailed instructions, see our [model setup guidance](doc/setup_model.md).
 
 ## Usage
 
