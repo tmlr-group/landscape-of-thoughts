@@ -278,7 +278,7 @@ If you find this work useful for your research, please cite:
 ```bibtex
 @article{zhou2025landscape,
   title={Landscape of Thoughts: Visualizing the Reasoning Process of Large Language Models},
-  author={Zhanke Zhou and Zhaocheng Zhu and Xuan Li and Mikhail Galkin and Xiao Feng and Sanmi Koyejo and Jian Tang and Bo Han},
+  author={Zhou, Zhanke and Zhu, Zhaocheng and Li, Xuan and Galkin, Mikhail and Feng, Xiao and Koyejo, Sanmi and Tang, Jian and Han, Bo},
   journal={arXiv preprint arXiv:2503.22165},
   year={2025},
   url={https://arxiv.org/abs/2503.22165}
