@@ -289,5 +289,5 @@ If you find this work useful for your research, please cite:
 
 For questions, technical support, or collaboration inquiries:
 
-- Email: cszkzhou@comp.hkbu.edu.hk
+- Email: Zhanke Zhou (cszkzhou@comp.hkbu.edu.hk), Zhaocheng Zhu (zhaochengz@nvidia.com), Xuan Li (csxuanli@comp.hkbu.edu.hk)
 - Issues: [GitHub Issues](https://github.com/tmlr-group/landscape-of-thoughts/issues)
